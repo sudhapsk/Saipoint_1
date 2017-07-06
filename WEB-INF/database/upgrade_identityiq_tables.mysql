@@ -1,0 +1,307 @@
+--
+-- This script contains DDL statements to upgrade a database schema to
+-- reflect changes to the model.  This file should only be used to
+-- upgrade from the last formal release version to the current code base.
+--
+
+USE identityiq;
+
+-- SCIM Audit Resources
+ALTER TABLE identityiq.spt_audit_config ADD resources longtext;
+
+-- Provisioning Transaction
+create table identityiq.spt_provisioning_transaction (
+    id varchar(32) not null,
+    name varchar(255),
+    created bigint,
+    modified bigint,
+    operation varchar(255),
+    source varchar(255),
+    application_name varchar(255),
+    identity_name varchar(255),
+    identity_display_name varchar(255),
+    native_identity varchar(322),
+    account_display_name varchar(322),
+    attributes longtext,
+    integration varchar(255),
+    certification_id varchar(32),
+    forced bit,
+    type varchar(255),
+    status varchar(255),
+    primary key (id)
+) ENGINE=InnoDB;
+
+create index spt_prvtrans_name on identityiq.spt_provisioning_transaction (name);
+
+create index spt_prvtrans_status on identityiq.spt_provisioning_transaction (status);
+
+create index spt_prvtrans_iddn_ci on identityiq.spt_provisioning_transaction (identity_display_name);
+
+create index spt_prvtrans_integ_ci on identityiq.spt_provisioning_transaction (integration);
+
+create index spt_prvtrans_src on identityiq.spt_provisioning_transaction (source);
+
+create index spt_prvtrans_forced on identityiq.spt_provisioning_transaction (forced);
+
+create index spt_prvtrans_app_ci on identityiq.spt_provisioning_transaction (application_name);
+
+create index spt_prvtrans_adn_ci on identityiq.spt_provisioning_transaction (account_display_name(255));
+
+create index spt_prvtrans_type on identityiq.spt_provisioning_transaction (type);
+
+create index spt_prvtrans_idn_ci on identityiq.spt_provisioning_transaction (identity_name);
+
+create index spt_prvtrans_nid_ci on identityiq.spt_provisioning_transaction (native_identity(255));
+
+create index spt_prvtrans_op on identityiq.spt_provisioning_transaction (operation);
+
+create table identityiq.spt_prv_trans_sequence ( next_val bigint );
+
+insert into identityiq.spt_prv_trans_sequence values ( 1 );
+
+-- End Provisioning Transaction
+
+-- Indexed flag for schema attributes
+
+alter table identityiq.spt_schema_attributes add indexed bit default 0;
+
+-- Indexed flag for schema permissions, child hierarchy
+
+alter table identityiq.spt_application_schema add index_permissions bit default 0;
+
+alter table identityiq.spt_application_schema add child_hierarchy bit default 0;
+
+-- Extend TargetAssociation
+
+alter table identityiq.spt_target_association add application_name varchar(128);
+alter table identityiq.spt_target_association add target_type varchar(128);
+alter table identityiq.spt_target_association add target_name varchar(255);
+alter table identityiq.spt_target_association add hierarchy varchar(512);
+alter table identityiq.spt_target_association add flattened bit default 0;
+
+-- Extend ArchivedCertificationItem exceptionNativeIdentity column to match Link
+
+alter table identityiq.spt_archived_cert_item change column exception_native_identity exception_native_identity varchar(322);
+
+-- Remove non null constraint on QuickLinkOptions
+ALTER TABLE identityiq.spt_quick_link_options drop foreign key FK8C93F7F329E4F453;
+alter table identityiq.spt_quick_link_options modify quick_link varchar(32);
+ALTER TABLE identityiq.spt_quick_link_options ADD CONSTRAINT FK8C93F7F329E4F453 FOREIGN KEY (quick_link) REFERENCES identityiq.spt_quick_link(id);
+
+-- Increase the field size for spt_certification_archive.name
+ALTER TABLE identityiq.spt_certification_archive MODIFY name varchar(256);
+
+create index spt_application_modified on identityiq.spt_application (modified);
+create index spt_application_created on identityiq.spt_application (created);
+
+create index spt_integration_conf_created on identityiq.spt_integration_config (created);
+create index spt_integration_conf_modified on identityiq.spt_integration_config (modified);
+
+ALTER TABLE identityiq.spt_target MODIFY native_object_id varchar(322);
+
+CREATE INDEX spt_target_native_obj_id ON identityiq.spt_target (native_object_id(255));
+
+CREATE INDEX spt_target_last_agg ON identityiq.spt_target (last_aggregation);
+
+ALTER TABLE identityiq.spt_target_association ADD last_aggregation bigint;
+
+CREATE INDEX spt_target_assoc_last_agg ON identityiq.spt_target_association (last_aggregation);
+
+-- Add refreshRule to TargetSource
+ALTER TABLE identityiq.spt_target_source ADD refresh_rule varchar(32);
+
+-- Add extended1 to Target
+alter table identityiq.spt_target add extended1 varchar(255);
+create index spt_target_extended1_ci on identityiq.spt_target (extended1);
+
+-- aggregation types
+
+alter table identityiq.spt_application add aggregation_types varchar(128);
+alter table identityiq.spt_application_schema add aggregation_type varchar(128);
+
+-- Increase the field size for spt_service_definition.hosts
+ALTER TABLE identityiq.spt_service_definition MODIFY hosts varchar(1024);
+
+-- Plugin
+create table identityiq.spt_plugin (
+    id varchar(32) not null,
+    name varchar(255),
+    created bigint,
+    modified bigint,
+    install_date bigint,
+    display_name varchar(255),
+    version varchar(255),
+    disabled bit,
+    right_required varchar(255),
+    min_system_version varchar(255),
+    max_system_version varchar(255),
+    attributes longtext,
+    position integer,
+    certification_level varchar(255),
+    file_id varchar(32) unique,
+    primary key (id)
+) ENGINE=InnoDB;
+
+create index spt_plugin_name_ci on identityiq.spt_plugin (name);
+
+create index spt_plugin_dn_ci on identityiq.spt_plugin (display_name);
+
+alter table identityiq.spt_plugin 
+    add index FK13AE22BBF7C36E0D (file_id), 
+    add constraint FK13AE22BBF7C36E0D 
+    foreign key (file_id) 
+    references identityiq.spt_persisted_file (id);
+
+-- End Plugin
+-- ActivityAlerts
+create table identityiq.spt_alert (
+        id varchar(32) not null,
+        created bigint,
+        modified bigint,
+        extended1 varchar(255),
+        attributes longtext,
+        source varchar(32),
+        alert_date bigint,
+        native_id varchar(255),
+        target_id varchar(255),
+        target_type varchar(255),
+        target_display_name varchar(255),
+        last_processed bigint,
+        display_name varchar(128),
+        name varchar(255),
+        type varchar(255),
+        primary key (id)
+    ) ENGINE=InnoDB;
+
+create table identityiq.spt_alert_action (
+        id varchar(32) not null,
+        created bigint,
+        modified bigint,
+        alert_def longtext,
+        action_type varchar(255),
+        result_id varchar(255),
+        result longtext,
+        alert varchar(32),
+        primary key (id)
+    ) ENGINE=InnoDB;
+
+create table identityiq.spt_alert_definition (
+        id varchar(32) not null,
+        created bigint,
+        modified bigint,
+        owner varchar(32),
+        assigned_scope varchar(32),
+        assigned_scope_path varchar(450),
+        match_config longtext,
+        disabled bit,
+        name varchar(128) not null unique,
+        description varchar(1024),
+        display_name varchar(128),
+        action_config longtext,
+        primary key (id)
+    ) ENGINE=InnoDB;
+
+alter table identityiq.spt_alert
+        add index FKAD3A44D4A7C3772B (source),
+        add constraint FKAD3A44D4A7C3772B
+        foreign key (source)
+        references identityiq.spt_application (id);
+
+alter table identityiq.spt_alert_action
+        add index FK89E001BF1C6C78 (alert),
+        add constraint FK89E001BF1C6C78
+        foreign key (alert)
+        references identityiq.spt_alert (id);
+
+alter table identityiq.spt_alert_definition
+        add index FK3DF7B99EA5FB1B1 (owner),
+        add constraint FK3DF7B99EA5FB1B1
+        foreign key (owner)
+        references identityiq.spt_identity (id);
+
+alter table identityiq.spt_alert_definition
+        add index FK3DF7B99E486634B7 (assigned_scope),
+        add constraint FK3DF7B99E486634B7
+        foreign key (assigned_scope)
+        references identityiq.spt_scope (id);
+
+create index SPT_IDX99763E0AD76DF7A8 on identityiq.spt_alert_definition (assigned_scope_path(255));
+
+create index spt_alert_last_processed on identityiq.spt_alert (last_processed);
+
+create index spt_alert_name on identityiq.spt_alert (name);
+
+create table identityiq.spt_alert_sequence ( next_val bigint );
+
+insert into identityiq.spt_alert_sequence values ( 1 );
+
+ALTER TABLE identityiq.spt_application_schema ADD creation_rule varchar(32);
+
+alter table identityiq.spt_application_schema
+        add index FK62F93AF84FE65998 (creation_rule),
+        add constraint FK62F93AF84FE65998
+        foreign key (creation_rule)
+        references identityiq.spt_rule (id);
+
+
+ALTER TABLE identityiq.spt_application_schema ADD customization_rule varchar(32);
+
+alter table identityiq.spt_application_schema
+        add index FK62F93AF86FB29924 (customization_rule),
+        add constraint FK62F93AF86FB29924
+        foreign key (customization_rule)
+        references identityiq.spt_rule (id);
+
+ALTER TABLE identityiq.spt_application_schema ADD correlation_rule varchar(32);
+
+alter table identityiq.spt_application_schema
+        add index FK62F93AF8BE1EE0D5 (correlation_rule),
+        add constraint FK62F93AF8BE1EE0D5
+        foreign key (correlation_rule)
+        references identityiq.spt_rule (id);
+
+
+-- End ActivityAlerts
+
+-- Update field sizes to accommodate managed attribute values
+ALTER TABLE identityiq.spt_certification_entity drop index spt_cert_entity_identity;
+ALTER TABLE identityiq.spt_certification_entity MODIFY identity_id varchar(450);
+CREATE index spt_cert_entity_identity on identityiq.spt_certification_entity (identity_id(255));
+
+ALTER TABLE identityiq.spt_certification_entity MODIFY account_group varchar(450);
+ALTER TABLE identityiq.spt_audit_event MODIFY string1 varchar(450);
+ALTER TABLE identityiq.spt_audit_event MODIFY string2 varchar(450); 
+ALTER TABLE identityiq.spt_audit_event MODIFY string3 varchar(450); 
+ALTER TABLE identityiq.spt_audit_event MODIFY string4 varchar(450);
+
+ALTER TABLE identityiq.spt_archived_cert_entity DROP index spt_arch_entity_identity_csi;
+ALTER TABLE identityiq.spt_archived_cert_entity MODIFY identity_name varchar(450);
+CREATE INDEX spt_arch_entity_identity_csi on identityiq.spt_archived_cert_entity (identity_name(255));
+
+ALTER TABLE identityiq.spt_archived_cert_entity DROP index spt_arch_entity_acct_grp_csi;
+ALTER TABLE identityiq.spt_archived_cert_entity MODIFY account_group varchar(450);
+CREATE INDEX spt_arch_entity_acct_grp_csi on identityiq.spt_archived_cert_entity (account_group(255));
+
+ALTER TABLE identityiq.spt_entitlement_snapshot DROP index spt_ent_snap_displayName_ci;
+ALTER TABLE identityiq.spt_entitlement_snapshot MODIFY display_name varchar(450);
+CREATE INDEX spt_ent_snap_displayName_ci on identityiq.spt_entitlement_snapshot (display_name(255));
+-- End update field sizes to accommodate managed attribute values
+
+create index spt_syslog_created on identityiq.spt_syslog_event (created);
+
+-- Make CertificationEntity indexes case insensitive
+alter table identityiq.spt_certification_entity drop index spt_cert_entity_firstname;
+create index spt_cert_entity_firstname_ci on identityiq.spt_certification_entity (firstname);
+
+alter table identityiq.spt_certification_entity drop index spt_cert_entity_lastname;
+create index spt_cert_entity_lastname_ci on identityiq.spt_certification_entity (lastname);
+
+alter table identityiq.spt_certification_entity drop index spt_certification_entity_tdn;
+create index spt_cert_entity_tdn_ci on identityiq.spt_certification_entity (target_display_name);
+-- End Cert Entity updates
+
+
+--
+-- make sure to change the schema version here. LEAVE THIS HERE
+--
+update identityiq.spt_database_version set schema_version = '7.1-29' where name = 'main';

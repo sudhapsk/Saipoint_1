@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<!--
+  ~ /* (c) Copyright 2008 SailPoint Technologies, Inc., All Rights Reserved. */
+  -->
+
+<html lang="en"
+      xmlns:sp="http://sailpoint.com/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html">
+  <body>
+
+    <ui:composition template="/ngAppPage.xhtml">
+      <ui:define name="headerItems">
+
+        <ui:include src="../../ui/scriptData.xhtml" />
+
+        <script type="text/javascript">
+            SailPoint.VIEW_ALERT = #{sp:hasRight(facesContext, "ViewAlert")};
+            SailPoint.FULL_ACCESS_ALERT_DEF = #{sp:hasRight(facesContext, "FullAccessAlertDefinition")};
+            SailPoint.VIEW_ALERT_DEF = #{sp:hasRight(facesContext, "ViewAlertDefinition")};
+        </script>
+
+        <script src="#{base.requestContextPath}/ui/js/bundles/AlertAppBundle.js"></script>
+      </ui:define>
+
+      <ui:define name="body">
+        <div>
+            <div ui-view=""></div>
+        </div>
+      </ui:define>
+    </ui:composition>
+
+  </body>
+</html>

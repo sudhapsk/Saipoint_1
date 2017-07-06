@@ -1,0 +1,1281 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE sailpoint PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+
+<!-- (c) Copyright 2008 SailPoint Technologies, Inc., All Rights Reserved. -->
+
+<!--
+  This is used by 'iiq upgrade' to drive upgrading the schema and data between
+  revisions.
+
+  There are two files that define the upgrade, upgrade.xml and
+  upgradeObjects.xml.
+
+  upgrade.xml is processed in a special way before Hibernate
+  is started so that changes can be made at the JDBC level.  upgrade.xml should
+  only contain <ImportAction> elements that use the "execute" command to
+  call upgrader classes.  *DO NOT PUT STATIC XML OBJECTS IN UPGRADE.XML*
+
+  upgradeObjects.xml (this file) is included by upgrade.xml and will be
+  imported after Hibernate is started.  Any changes to objects that can be
+  represented as static XML or as ImportActions with the "merge" command
+  must go in upgradeObjects.xml to ensure that they are parsed after
+  Hibernate has been started so that references can be resolved.
+
+-->
+<sailpoint>
+
+  <!--
+     This will reimport some updated objects
+     and should be safe to do for every release.
+   -->
+  <ImportAction name='include' value='WEB-INF/config/authorization.xml' />
+  <ImportAction name='include' value='WEB-INF/config/reportDefinitions.xml' />
+  <ImportAction name='include' value='WEB-INF/config/tasks.xml' />
+  <ImportAction name='include' value='WEB-INF/config/reportTasks.xml' />
+  <ImportAction name='include' value='WEB-INF/config/archiveReports.xml'/>
+  <ImportAction name='include' value='WEB-INF/config/rules.xml' />
+  <ImportAction name='include' value='WEB-INF/config/workflowRules.xml' />
+  <ImportAction name='include' value='WEB-INF/config/workflowSubs.xml' />
+  <ImportAction name='include' value='WEB-INF/config/workflowRegistry.xml' />
+  <ImportAction name='include' value='WEB-INF/config/workflow.xml' />
+  <ImportAction name='include' value='WEB-INF/config/form.xml' />
+  <ImportAction name='include' value='WEB-INF/config/reportForms.xml' />
+  <ImportAction name='include' value='WEB-INF/config/emailtemplates.xml' />
+  <ImportAction name='include' value='WEB-INF/config/defaultPasswordPolicies.xml' />
+  <ImportAction name='include' value='WEB-INF/config/connectorRegistry.xml' />
+  <!-- Controlled Availability for Connectors -->
+  <ImportAction name='include' value='WEB-INF/config/connectorRegistryCAConnectors.xml' />
+  <ImportAction name='include' value='WEB-INF/config/reportRules.xml' />
+  <ImportAction name="include" value="WEB-INF/config/lcmForms.xml" />
+  <ImportAction name="include" value="WEB-INF/config/sendEmailPostActionRule.xml" />
+  <ImportAction name="include" value="WEB-INF/config/cefActivityTransformRule.xml" />
+  <ImportAction name="include" value="WEB-INF/config/cefActivityCorrelationRule.xml" />
+  <ImportAction name="include" value="WEB-INF/config/workflowConfigForms.xml" />
+  <!-- Scim configuration -->
+  <ImportAction name='include' value='WEB-INF/config/scimConfiguration.xml' />
+  
+  <ImportAction name="merge">
+    <AuditConfig name="AuditConfig">
+      <AuditActions>
+        <!-- housekeeper events -->
+        <AuditAction name="provisioningTransactionsPruned" displayName="audit_action_pruneProvisioningTransactions"/>
+
+        <!-- Plugin audit events -->
+        <AuditAction name="PluginInstalled" displayName="audit_action_plugin_installed"/>
+        <AuditAction name="PluginUpgraded" displayName="audit_action_plugin_upgraded"/>
+        <AuditAction name="PluginUninstalled" displayName="audit_action_plugin_uninstalled"/>
+        <AuditAction name="PluginEnabled" displayName="audit_action_plugin_enabled"/>
+        <AuditAction name="PluginDisabled" displayName="audit_action_plugin_disabled"/>
+        <AuditAction name="PluginConfigurationChanged" displayName="audit_action_plugin_configuration_changed"/>
+
+        <!-- Alert audit events -->
+        <AuditAction name="AlertProcessed" displayName="audit_action_alert_processed"/>
+        <AuditAction name="AlertActionCreated" displayName="audit_action_alert_action_created"/>
+      </AuditActions>
+      <AuditSCIMResources>
+        <AuditSCIMResource name="User" create="true" update="true" delete="true"/>
+        <AuditSCIMResource name="Application"/>
+        <AuditSCIMResource name="Entitlement"/>
+        <AuditSCIMResource name="Role"/>
+        <AuditSCIMResource name="Account" create="true" update="true" delete="true"/>
+      </AuditSCIMResources>
+    </AuditConfig>
+  </ImportAction>
+
+  <ImportAction name="merge">
+    <Configuration name='SystemConfiguration'>
+      <Attributes>
+        <Map>
+          <!-- Whether to display the revocation dialog when revoking a role assignment with required or permitted roles. -->
+          <entry key='showCertificationRoleRevocationDetails' value='true' />
+        </Map>
+      </Attributes>
+    </Configuration>
+  </ImportAction>
+
+  <ImportAction name="merge">
+    <UIConfig name='UIConfig'>
+      <Attributes>
+        <Map>
+          <entry key="uiCertificationRevocationDetailsColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="cert_revocation_details_tbl_header_status" dataIndex="status" property="action.remediationCompleted" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="cert_revocation_details_tbl_header_owner" dataIndex="owner" property="action.ownerName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="cert_revocation_details_tbl_header_requester" dataIndex="requester" property="action.actorName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="cert_revocation_details_tbl_header_identity_name" dataIndex="identityName" property="parent.targetName" sortable="true" hideable="true"/>
+                <ColumnConfig dataIndex="target_name" fieldOnly="true" property="targetName" sortProperty="targetName"/>
+                <ColumnConfig headerKey="cert_revocation_details_tbl_header_display_name" dataIndex="targetDisplayName" sortable="true" hideable="true" sortProperty="type, bundle, exceptionEntitlements, violationSummary"/>
+                <ColumnConfig headerKey="cert_revocation_details_tbl_header_request_type" dataIndex="requestType" property="action.remediationAction" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="cert_revocation_details_tbl_header_expiration" dataIndex="expiration" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_revocation_details_tbl_header_details" dataIndex="details" property="action.description" sortable="true" hideable="true" renderer="spMoreLessToggleColumn"/>
+              </List>
+            </value>
+          </entry>
+          <entry key="identityEntitlementRoleGridColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="id" fieldOnly="true" property="id"/>
+                <ColumnConfig dataIndex="identityId" fieldOnly="true" property="identity.id"/>
+                <ColumnConfig dataIndex="startDate" fieldOnly="true" property="startDate"/>
+                <ColumnConfig dataIndex="endDate" fieldOnly="true" property="endDate"/>
+                <ColumnConfig dataIndex="name" fieldOnly="true" property="name"/>
+                <ColumnConfig dataIndex="roleId" fieldOnly="true"/>
+                <ColumnConfig dataIndex="roleType" fieldOnly="true"/>
+                <ColumnConfig dataIndex="value" fieldOnly="true" property="value" sortProperty="value"/>
+                <ColumnConfig dataIndex="displayableName" headerKey="displayable_name" hideable="true" percentWidth="20" property="Bundle.displayableName" renderer="SailPoint.Define.Grid.IdentityEntitlementRoles.renderValue" sortProperty="Bundle.displayableName" sortable="true"/>
+                <ColumnConfig dataIndex="roleDescription" headerKey="label_description" hideable="true" percentWidth="30" renderer="SailPoint.Define.Grid.IdentityEntitlementRoles.renderDescription"/>
+                <ColumnConfig dataIndex="assigner" headerKey="identity_role_col_assigned_by" hideable="true" percentWidth="10" property="assigner" sortProperty="assigner"/>
+                <ColumnConfig dataIndex="allowedBy" headerKey="identity_role_col_permittedBy" hideable="true" percentWidth="10"/>
+                <ColumnConfig dataIndex="acquired" headerKey="identity_role_col_acquired" hideable="true" percentWidth="10"/>
+                <ColumnConfig dataIndex="lastCertName" headerKey="identity_entitlements_cert_last" hidden="true" hideable="true" property="certificationItem.parent.certification.name" sortable="false"/>
+                <ColumnConfig dataIndex="lastCertDate" headerKey="identity_entitlements_cert_last_date" dateStyle="short" hidden="true" hideable="true" property="certificationItem.modified" renderer="SailPoint.Manage.Grid.AccessRequests.renderDate"/>
+                <ColumnConfig dataIndex="hasPendingRequest" headerKey="identity_entitlements_has_pending_request" hidden="true" hideable="true" sortable="false"/>
+                <ColumnConfig dataIndex="pendingRequestId" headerKey="identity_entitlements_request_id" hidden="true" hideable="true" property="requestItem.identityRequest.name" sortProperty="requestItem.identityRequest.name" sortable="false" renderer="SailPoint.Define.Grid.IdentityEntitlementRoles.renderRequestId"/>
+                <ColumnConfig dataIndex="application" headerKey="identity_entitlements_applications" sortable="false" percentWidth="10" hideable="true" />
+                <ColumnConfig dataIndex="accountName" headerKey="identity_entitlements_accounts" sortable="false" percentWidth="10" hideable="true" />
+                <ColumnConfig dataIndex="assignmentId" property="assignmentId" fieldOnly="true" />
+                <ColumnConfig dataIndex="assignmentNote" property="assignmentNote" headerKey="identity_role_col_assignment_note" sortable="false" hidden="true" hideable="true" />
+                <ColumnConfig dataIndex="roleTypeIcon" fieldOnly="true"/>
+              </List>
+            </value>
+          </entry>
+          <entry key="uiCertificationExportColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="cert_item_tbl_header_identity" property="parent.identity" />
+                <ColumnConfig headerKey="cert_item_tbl_header_firstname" dataIndex="firstName" property="parent.firstname" />
+                <ColumnConfig headerKey="cert_item_tbl_header_lastname" dataIndex="lastName" property="parent.lastname" />
+                <ColumnConfig headerKey="cert_item_tbl_header_type" property="type" evaluator="sailpoint.web.view.certification.ShortItemTypeColumn" />
+                <ColumnConfig headerKey="cert_item_tbl_header_display_name" dataIndex="displayName" property="IIQ_displayName" evaluator="sailpoint.web.view.certification.CertificationItemDisplayNameColumn" />
+                <ColumnConfig headerKey="cert_item_tbl_header_description" dataIndex="description" property="IIQ_description" evaluator="sailpoint.web.view.certification.CertificationItemDescriptionColumn" />
+                <ColumnConfig headerKey="cert_item_tbl_header_application" dataIndex="application" property="exceptionApplication" />
+                <ColumnConfig headerKey="status" property="summaryStatus" />
+                <ColumnConfig headerKey="cert_item_tbl_header_accountDisplayName" dataIndex="accountName" property="exceptionEntitlements.displayName" />
+                <ColumnConfig headerKey="cert_item_tbl_header_decision" property="IIQ_decision" evaluator="sailpoint.web.view.certification.CertificationItemCurrentDecisionStateColumn"/>
+                <ColumnConfig headerKey="certification_decision_comment" property="IIQ_decisionComment" evaluator="sailpoint.web.view.certification.CertificationItemCurrentDecisionCommentColumn" />
+              </List>
+            </value>
+          </entry>
+          <entry key="uiCertificationItemWorksheetColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="decisionStatus" property="IIQ_decisionChoices" evaluator="sailpoint.web.view.certification.CertificationItemDecisionColumn" fieldOnly="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_firstname" dataIndex="firstName" percentWidth="10" property="parent.firstname" sortable="true" hideable="true" secondarySort="parent.lastname,type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_lastname" dataIndex="lastName" percentWidth="10" property="parent.lastname" sortable="true" hideable="true" secondarySort="parent.firstname,type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_type" dataIndex="typeMessageKey" percentWidth="10" renderer="spTranslate" sortable="true" hideable="true" sortProperty="type"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_display_name" dataIndex="displayName" renderer="spCertificationDisplayNameColumn" percentWidth="20" property="IIQ_displayName" evaluator="sailpoint.web.view.certification.CertificationItemDisplayNameColumn" sortable="true" hideable="true" sortProperty="type,bundle,exceptionApplication,exceptionAttributeName,exceptionAttributeValue,exceptionPermissionTarget,exceptionPermissionRight,violationSummary" secondarySort="parent.lastname,parent.firstname,type"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_description" dataIndex="description" percentWidth="50" minWidth="250" property="IIQ_description" evaluator="sailpoint.web.view.certification.CertificationItemDescriptionColumn" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_application" dataIndex="application" percentWidth="10" property="exceptionApplication" sortable="true" hideable="true" secondarySort="parent.lastname,parent.firstname,type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_instance" dataIndex="instance" property="exceptionEntitlements.instance" sortable="true" hideable="true" hidden="true" secondarySort="exceptionApplication,parent.lastname,parent.firstname,type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_accountid" dataIndex="nativeIdentity" property="exceptionEntitlements.nativeIdentity" sortable="true" hideable="true" hidden="true" secondarySort="exceptionApplication,parent.lastname,parent.firstname,type,IIQ_displayName" />
+                <ColumnConfig headerKey="cert_item_tbl_header_accountDisplayName" dataIndex="accountName" renderer="spCertificationAccountDisplayNameColumn" property="exceptionEntitlements.displayName" sortable="true" hideable="true" secondarySort="exceptionApplication,parent.lastname,parent.firstname,type,IIQ_displayName" />
+                <ColumnConfig headerKey="cert_item_tbl_header_account" dataIndex="IIQ_accountKey" property="IIQ_accountKey" sortable="true" hideable="true" hidden="true" sortProperty="exceptionEntitlements.displayName,exceptionApplication,exceptionEntitlements.instance" secondarySort="parent.lastname,parent.firstname,type,IIQ_displayName" groupProperty="exceptionApplication,exceptionEntitlements.nativeIdentity,exceptionEntitlements.instance" renderer="certItemAccount" evaluator="sailpoint.web.view.certification.CertificationItemAccountKeyColumn" />
+                <ColumnConfig headerKey="cert_item_tbl_header_role_applications" dataIndex="roleApplications" property="IIQ_roleApplications" sortable="false" hideable="true" hidden="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_role_accounts" dataIndex="roleAccountNames" property="IIQ_roleAccounts" sortable="false" hideable="true" hidden="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_compositescore" dataIndex="riskScore" property="parent.compositeScore" sortable="true" hideable="true" hidden="true" secondarySort="parent.lastname,parent.firstname,type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_changes_detected" dataIndex="changesDetected" property="IIQ_changesDetected" sortable="true" hideable="true" hidden="true" sortProperty="parent.newUser,hasDifferences" evaluator="sailpoint.web.view.certification.CertificationItemChangesDetectedColumn"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_identity" property="parent.identity" sortable="true" hideable="true" hidden="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_decision" renderer="spCertificationActionColumn" sortable="false" hideable="false" fixed="Right" />
+                <ColumnConfig dataIndex="summaryStatus" property="summaryStatus" renderer="certSummaryStatus" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetDisplayName" property="parent.targetDisplayName" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetId" property="parent.targetId" fieldOnly="true" />
+                <ColumnConfig dataIndex="entityId" property="parent.id" fieldOnly="true" />
+                <ColumnConfig dataIndex="challenge" property="challenge" fieldOnly="true" />
+                <ColumnConfig dataIndex="newUser" property="parent.newUser" fieldOnly="true" />
+                <ColumnConfig dataIndex="hasDifferences" property="hasDifferences" fieldOnly="true" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiCertificationItemReturnedItemsColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="decisionStatus" evaluator="sailpoint.web.view.certification.CertificationItemDecisionColumn" fieldOnly="true" property="IIQ_decisionChoices"/>
+                <ColumnConfig dataIndex="firstName" headerKey="cert_item_tbl_header_firstname" hideable="true" percentWidth="10" property="parent.firstname" secondarySort="parent.lastname,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="lastName" headerKey="cert_item_tbl_header_lastname" hideable="true" percentWidth="10" property="parent.lastname" secondarySort="parent.firstname,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="typeMessageKey" headerKey="cert_item_tbl_header_type" percentWidth="10" renderer="spTranslate" sortProperty="type" sortable="true"/>
+                <ColumnConfig dataIndex="displayName" evaluator="sailpoint.web.view.certification.CertificationItemDisplayNameColumn" headerKey="cert_item_tbl_header_display_name" hideable="true" percentWidth="15" property="IIQ_displayName" secondarySort="parent.lastname,parent.firstname,type" sortProperty="type,bundle,exceptionApplication,exceptionAttributeName,exceptionAttributeValue,exceptionPermissionTarget,exceptionPermissionRight,violationSummary" sortable="true"/>
+                <ColumnConfig dataIndex="description" evaluator="sailpoint.web.view.certification.CertificationItemDescriptionColumn" headerKey="cert_item_tbl_header_description" hideable="true" percentWidth="30" minWidth="250" property="IIQ_description" renderer="spMoreLessToggleColumn"/>
+                <ColumnConfig dataIndex="comments" evaluator="sailpoint.web.view.certification.CertificationDecisionCommentColumn" headerKey="cert_item_tbl_header_comment" hideable="true" percentWidth="15" property="IIQ_decisionHistory" renderer="spMoreLessToggleColumn"/>
+                <ColumnConfig dataIndex="application" headerKey="cert_item_tbl_header_application" hideable="true" percentWidth="10" property="exceptionApplication" secondarySort="parent.lastname,parent.firstname,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="instance" headerKey="cert_item_tbl_header_instance" hidden="true" hideable="true" property="exceptionEntitlements.instance" secondarySort="exceptionApplication,parent.lastname,parent.firstname,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="nativeIdentity" headerKey="cert_item_tbl_header_accountid" hidden="true" hideable="true" property="exceptionEntitlements.nativeIdentity" secondarySort="exceptionApplication,parent.lastname,parent.firstname,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="accountName" headerKey="cert_item_tbl_header_accountDisplayName" hidden="true" hideable="true" property="exceptionEntitlements.displayName" secondarySort="exceptionApplication,parent.lastname,parent.firstname,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_role_applications" dataIndex="roleApplications" property="IIQ_roleApplications" sortable="false" hideable="true" hidden="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_role_accounts" dataIndex="roleAccountNames" property="IIQ_roleAccounts" sortable="false" hideable="true" hidden="true" />
+                <ColumnConfig dataIndex="riskScore" headerKey="cert_item_tbl_header_compositescore" hidden="true" hideable="true" property="parent.compositeScore" secondarySort="parent.lastname,parent.firstname,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="summaryStatus" headerKey="cert_item_tbl_header_summary_status" hidden="true" hideable="true" property="summaryStatus" renderer="certSummaryStatus" sortable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_changes_detected" dataIndex="changesDetected" property="IIQ_changesDetected" sortable="true" hideable="true" hidden="true" sortProperty="parent.newUser,hasDifferences" evaluator="sailpoint.web.view.certification.CertificationItemChangesDetectedColumn"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_identity" property="parent.identity" sortable="true" hideable="true" hidden="true"/>
+                <ColumnConfig dataIndex="decisions" headerKey="cert_item_tbl_header_decision" renderer="spCertificationDecisionColumn"/>
+                <ColumnConfig fixed="Right" headerKey="cert_item_tbl_header_action" renderer="spCertificationActionColumn"/>
+                <ColumnConfig dataIndex="targetDisplayName" property="parent.targetDisplayName" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetId" property="parent.targetId" fieldOnly="true" />
+                <ColumnConfig dataIndex="entityId" property="parent.id" fieldOnly="true" />
+                <ColumnConfig dataIndex="challenge" property="challenge" fieldOnly="true" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiCertificationItemPolicyViolationsColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="decisionStatus" property="IIQ_decisionChoices" evaluator="sailpoint.web.view.certification.CertificationItemDecisionColumn" fieldOnly="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_firstname" dataIndex="firstName" property="parent.firstname" sortable="true" hideable="true" secondarySort="parent.lastname,type"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_lastname" dataIndex="lastName" property="parent.lastname" sortable="true" hideable="true" secondarySort="parent.firstname,type"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_name" dataIndex="policyName" renderer="spCertificationDisplayNameColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_description" dataIndex="policyDescription" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_rule" dataIndex="policyViolationRule" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_owner" dataIndex="policyViolationOwner" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_rule_description" dataIndex="policyRuleDescription" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_description" dataIndex="description" percentWidth="12" minWidth="250" hidden="true" property="IIQ_description" evaluator="sailpoint.web.view.certification.CertificationItemDescriptionColumn" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_conflict" dataIndex="policyViolationConflict" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_summary" dataIndex="policyViolationSummary" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_application" dataIndex="policyViolationApplication" hidden="true" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_account_name" dataIndex="policyViolationAccountName" hidden="true" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_compensating_control" dataIndex="policyViolationCompensatingControl" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_remediation_advice" dataIndex="policyViolationRemediationAdvice" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_changes_detected" dataIndex="changesDetected" property="IIQ_changesDetected" sortable="true" hideable="true" hidden="true" sortProperty="parent.newUser,hasDifferences" evaluator="sailpoint.web.view.certification.CertificationItemChangesDetectedColumn"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_identity" property="parent.identity" sortable="true" hideable="true" hidden="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_decision" renderer="spCertificationActionColumn" sortable="false" hideable="false" fixed="Right" />
+                <ColumnConfig dataIndex="summaryStatus" property="summaryStatus" renderer="certSummaryStatus" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetDisplayName" property="parent.targetDisplayName" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetId" property="parent.targetId" fieldOnly="true" />
+                <ColumnConfig dataIndex="policyViolation" property="policyViolation" fieldOnly="true" />
+                <ColumnConfig dataIndex="entityId" property="parent.id" fieldOnly="true" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiAdditionalCertificationInfoColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="ui_cert_name" dataIndex="name" percentWidth="35" renderer="spCertificationLink" sortable="false"/>
+                <ColumnConfig headerKey="ui_cert_owner" dataIndex="certifiers" percentWidth="25" sortable="false"/>
+                <ColumnConfig headerKey="ui_cert_completion" dataIndex="itemStatusCount" percentWidth="20" renderer="certCompletion" sortable="false"/>
+                <ColumnConfig headerKey="ui_cert_actions" dataIndex="actions" renderer="spAdditionalCertificationActionColumn" sortable="false"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiCertificationItemDetailViewColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="decisionStatus" property="IIQ_decisionChoices" evaluator="sailpoint.web.view.certification.CertificationItemDecisionColumn" fieldOnly="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_type" dataIndex="typeMessageKey" percentWidth="10" renderer="spTranslate" sortable="true" sortProperty="type"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_display_name" dataIndex="displayName" renderer="spCertificationDisplayNameColumn" percentWidth="20" property="IIQ_displayName" evaluator="sailpoint.web.view.certification.CertificationItemDisplayNameColumn" sortable="true" hideable="true" sortProperty="type,bundle,exceptionApplication,exceptionAttributeName,exceptionAttributeValue,exceptionPermissionTarget,exceptionPermissionRight,violationSummary" secondarySort="type"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_description" dataIndex="description" percentWidth="50" minWidth="250" property="IIQ_description" evaluator="sailpoint.web.view.certification.CertificationItemDescriptionColumn" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_application" dataIndex="application" percentWidth="10" property="exceptionApplication" sortable="true" hideable="true" secondarySort="type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_instance" dataIndex="instance" property="exceptionEntitlements.instance" sortable="true" hideable="true" hidden="true" secondarySort="exceptionApplication,type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_accountid" dataIndex="nativeIdentity" property="exceptionEntitlements.nativeIdentity" sortable="true" hideable="true" hidden="true" secondarySort="exceptionApplication,parent.lastname,parent.firstname,type,IIQ_displayName" groupProperty="exceptionApplication,exceptionEntitlements.nativeIdentity,exceptionEntitlements.instance"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_accountDisplayName" dataIndex="accountName" renderer="spCertificationAccountDisplayNameColumn" property="exceptionEntitlements.displayName" sortable="true" hideable="true" secondarySort="exceptionApplication,parent.lastname,parent.firstname,type,IIQ_displayName" groupProperty="exceptionApplication,exceptionEntitlements.nativeIdentity,exceptionEntitlements.instance"/>                <ColumnConfig headerKey="cert_item_tbl_header_compositescore" dataIndex="riskScore" property="parent.compositeScore" sortable="true" hideable="true" hidden="true" secondarySort="type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_role_applications" dataIndex="roleApplications" property="IIQ_roleApplications" sortable="false" hideable="true" hidden="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_role_accounts" dataIndex="roleAccountNames" property="IIQ_roleAccounts" sortable="false" hideable="true" hidden="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_compositescore" dataIndex="riskScore" property="parent.compositeScore" sortable="true" hideable="true" hidden="true" secondarySort="type,IIQ_displayName"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_changes_detected" dataIndex="changesDetected" property="IIQ_changesDetected" sortable="true" hideable="true" hidden="true" sortProperty="parent.newUser,hasDifferences" evaluator="sailpoint.web.view.certification.CertificationItemChangesDetectedColumn"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_decision" renderer="spCertificationActionColumn" sortable="false" hideable="false" fixed="Right" />
+                <ColumnConfig dataIndex="summaryStatus" property="summaryStatus" renderer="certSummaryStatus" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetDisplayName" property="parent.targetDisplayName" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetId" property="parent.targetId" fieldOnly="true" />
+                <ColumnConfig dataIndex="entityId" property="parent.id" fieldOnly="true" />
+                <ColumnConfig dataIndex="challenge" property="challenge" fieldOnly="true" />
+                <ColumnConfig dataIndex="newUser" property="parent.newUser" fieldOnly="true" />
+                <ColumnConfig dataIndex="hasDifferences" property="hasDifferences" fieldOnly="true" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiCertificationItemDetailViewReturnedItemsColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="decisionStatus" evaluator="sailpoint.web.view.certification.CertificationItemDecisionColumn" fieldOnly="true" property="IIQ_decisionChoices"/>
+               <ColumnConfig dataIndex="typeMessageKey" headerKey="cert_item_tbl_header_type" percentWidth="10" renderer="spTranslate" sortProperty="type" sortable="true"/>
+                <ColumnConfig dataIndex="displayName" evaluator="sailpoint.web.view.certification.CertificationItemDisplayNameColumn" headerKey="cert_item_tbl_header_display_name" hideable="true" percentWidth="15" property="IIQ_displayName" secondarySort="type" sortProperty="type,bundle,exceptionApplication,exceptionAttributeName,exceptionAttributeValue,exceptionPermissionTarget,exceptionPermissionRight,violationSummary" sortable="true"/>
+                <ColumnConfig dataIndex="description" evaluator="sailpoint.web.view.certification.CertificationItemDescriptionColumn" headerKey="cert_item_tbl_header_description" hideable="true" percentWidth="30" minWidth="250" property="IIQ_description" renderer="spMoreLessToggleColumn"/>
+                <ColumnConfig dataIndex="comments" evaluator="sailpoint.web.view.certification.CertificationDecisionCommentColumn" headerKey="cert_item_tbl_header_comment" hideable="true" percentWidth="15" property="IIQ_decisionHistory" renderer="spMoreLessToggleColumn"/>
+                <ColumnConfig dataIndex="application" headerKey="cert_item_tbl_header_application" hideable="true" percentWidth="10" property="exceptionApplication" secondarySort="type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="instance" headerKey="cert_item_tbl_header_instance" hidden="true" hideable="true" property="exceptionEntitlements.instance" secondarySort="exceptionApplication,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="nativeIdentity" headerKey="cert_item_tbl_header_accountid" hidden="true" hideable="true" property="exceptionEntitlements.nativeIdentity" secondarySort="exceptionApplication,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="accountName" headerKey="cert_item_tbl_header_accountDisplayName" hidden="true" hideable="true" property="exceptionEntitlements.displayName" secondarySort="exceptionApplication,type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_role_applications" dataIndex="roleApplications" property="IIQ_roleApplications" sortable="false" hideable="true" hidden="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_role_accounts" dataIndex="roleAccountNames" property="IIQ_roleAccounts" sortable="false" hideable="true" hidden="true" />
+                <ColumnConfig dataIndex="riskScore" headerKey="cert_item_tbl_header_compositescore" hidden="true" hideable="true" property="parent.compositeScore" secondarySort="type,IIQ_displayName" sortable="true"/>
+                <ColumnConfig dataIndex="summaryStatus" headerKey="cert_item_tbl_header_summary_status" hidden="true" hideable="true" property="summaryStatus" renderer="certSummaryStatus" sortable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_changes_detected" dataIndex="changesDetected" property="IIQ_changesDetected" sortable="true" hideable="true" hidden="true" sortProperty="parent.newUser,hasDifferences" evaluator="sailpoint.web.view.certification.CertificationItemChangesDetectedColumn"/>
+                <ColumnConfig dataIndex="decisions" headerKey="cert_item_tbl_header_decision" renderer="spCertificationDecisionColumn"/>
+                <ColumnConfig fixed="Right" headerKey="cert_item_tbl_header_action" renderer="spCertificationActionColumn"/>
+                <ColumnConfig dataIndex="targetDisplayName" property="parent.targetDisplayName" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetId" property="parent.targetId" fieldOnly="true" />
+                <ColumnConfig dataIndex="entityId" property="parent.id" fieldOnly="true" />
+                <ColumnConfig dataIndex="challenge" property="challenge" fieldOnly="true" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiCertificationItemDetailViewPolicyViolationsColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="decisionStatus" property="IIQ_decisionChoices" evaluator="sailpoint.web.view.certification.CertificationItemDecisionColumn" fieldOnly="true" />
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_name" dataIndex="policyName" renderer="spCertificationDisplayNameColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_description" dataIndex="policyDescription" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_rule" dataIndex="policyViolationRule" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_owner" dataIndex="policyViolationOwner" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_rule_description" dataIndex="policyRuleDescription" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_description" dataIndex="description" percentWidth="12" minWidth="250" hidden="true" property="IIQ_description" evaluator="sailpoint.web.view.certification.CertificationItemDescriptionColumn" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_conflict" dataIndex="policyViolationConflict" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_summary" dataIndex="policyViolationSummary" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_application" dataIndex="policyViolationApplication" hidden="true" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_account_name" dataIndex="policyViolationAccountName" hidden="true" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_compensating_control" dataIndex="policyViolationCompensatingControl" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_policy_violation_remediation_advice" dataIndex="policyViolationRemediationAdvice" hidden="true" renderer="spMoreLessToggleColumn" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_changes_detected" dataIndex="changesDetected" property="IIQ_changesDetected" sortable="true" hideable="true" hidden="true" sortProperty="parent.newUser,hasDifferences" evaluator="sailpoint.web.view.certification.CertificationItemChangesDetectedColumn"/>
+                <ColumnConfig headerKey="cert_item_tbl_header_decision" renderer="spCertificationActionColumn" sortable="false" hideable="false" fixed="Right" />
+                <ColumnConfig dataIndex="summaryStatus" property="summaryStatus" renderer="certSummaryStatus" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetDisplayName" property="parent.targetDisplayName" fieldOnly="true" />
+                <ColumnConfig dataIndex="targetId" property="parent.targetId" fieldOnly="true" />
+                <ColumnConfig dataIndex="policyViolation" property="policyViolation" fieldOnly="true" />
+                <ColumnConfig dataIndex="entityId" property="parent.id" fieldOnly="true" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiIdentityEntitlementGridColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="id" fieldOnly="true" property="id"/>
+                <ColumnConfig dataIndex="isGroup" fieldOnly="true"/>
+                <ColumnConfig dataIndex="aggregationState" property="aggregationState" fieldOnly="true"/>
+                <ColumnConfig dataIndex="entitlementDescription" fieldOnly="true"/>
+                <ColumnConfig dataIndex="value" fieldOnly="true" property="value"/>
+                <ColumnConfig dataIndex="startDate" fieldOnly="true" property="startDate"/>
+                <ColumnConfig dataIndex="endDate" fieldOnly="true" property="endDate"/>
+                <ColumnConfig dataIndex="name" headerKey="label_attribute" hideable="true" percentWidth="20" property="name" sortProperty="name" sortable="true"/>
+                <ColumnConfig dataIndex="displayValue" headerKey="entitlement" hideable="true" percentWidth="35" renderer="spIdentityAccessEntitlementColumn"/>
+                <ColumnConfig dataIndex="application" headerKey="label_application" hideable="true" percentWidth="15" property="application.name" sortProperty="application.name" sortable="true"/>
+                <ColumnConfig dataIndex="nativeIdentity" headerKey="account_name" hideable="true" property="displayName" percentWidth="15" sortProperty="displayName" sortable="true"/>
+                <ColumnConfig dataIndex="instance" headerKey="instance" hidden="true" hideable="true" property="instance" sortable="true"/>
+                <ColumnConfig dataIndex="hasPendingRequest" headerKey="identity_entitlements_has_pending_request" hidden="true" hideable="true" sortable="false" renderer="yesNo"/>
+                <ColumnConfig dataIndex="pendingRequestId" headerKey="identity_entitlements_request_id" hidden="true" hideable="true" property="requestItem.identityRequest.name" sortProperty="requestItem.identityRequest.name" sortable="false" renderer="precedingZeroes"/>
+                <ColumnConfig dataIndex="details" headerKey="ui_identity_access_details" hideable="false" percentWidth="20" sortable="false" renderer="spIdentityAccessDetailsColumn" fixed="Right"/>
+              </List>
+            </value>
+          </entry>
+          <entry key="uiIdentityEntitlementRoleGridColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="id" fieldOnly="true" property="id"/>
+                <ColumnConfig dataIndex="identityId" fieldOnly="true" property="identity.id"/>
+                <ColumnConfig dataIndex="startDate" fieldOnly="true" property="startDate"/>
+                <ColumnConfig dataIndex="endDate" fieldOnly="true" property="endDate"/>
+                <ColumnConfig dataIndex="name" fieldOnly="true" property="name"/>
+                <ColumnConfig dataIndex="roleId" fieldOnly="true"/>
+                <ColumnConfig dataIndex="roleType" fieldOnly="true"/>
+                <ColumnConfig dataIndex="value" fieldOnly="true" property="value" sortProperty="value"/>
+                <ColumnConfig dataIndex="displayName" headerKey="displayable_name" hideable="true" percentWidth="20" property="Bundle.displayableName" renderer="spIdentityAccessRoleNameColumn" sortProperty="Bundle.displayableName" sortable="true"/>
+                <ColumnConfig dataIndex="description" headerKey="label_description" hideable="true" percentWidth="30" renderer="spMoreLessToggleColumn"/>
+                <ColumnConfig dataIndex="assigner" headerKey="identity_role_col_assigned_by" hideable="true" percentWidth="10" property="assigner" sortProperty="assigner"/>
+                <ColumnConfig dataIndex="allowedBy" headerKey="identity_role_col_permittedBy" hideable="true" percentWidth="10"/>
+                <ColumnConfig dataIndex="acquired" headerKey="identity_role_col_acquired" hideable="true" percentWidth="10"/>
+                <ColumnConfig dataIndex="hasPendingRequest" headerKey="identity_entitlements_has_pending_request" hidden="true" hideable="true" sortable="false" renderer="yesNo"/>
+                <ColumnConfig dataIndex="pendingRequestId" headerKey="identity_entitlements_request_id" hidden="true" hideable="true" property="requestItem.identityRequest.name" sortProperty="requestItem.identityRequest.name" sortable="false" renderer="precedingZeroes"/>
+                <ColumnConfig dataIndex="application" headerKey="identity_entitlements_applications" sortable="false" percentWidth="10" hideable="true" />
+                <ColumnConfig dataIndex="accountName" headerKey="identity_entitlements_accounts" sortable="false" percentWidth="10" hideable="true" />
+                <ColumnConfig dataIndex="assignmentId" property="assignmentId" fieldOnly="true" />
+                <ColumnConfig dataIndex="assignmentNote" property="assignmentNote" headerKey="identity_role_col_assignment_note" sortable="false" hidden="true" hideable="true" />
+                <ColumnConfig dataIndex="details" headerKey="ui_identity_access_details" hideable="false" percentWidth="20" sortable="false" renderer="spIdentityAccessDetailsColumn" fixed="Right"/>
+              </List>
+            </value>
+          </entry>
+          <entry key="uiIdentityEntitlementIndirectGridColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="source" property="applicationName" sortProperty="applicationName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="type" property="targetType" sortProperty="targetType" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="value" property="targetName" sortProperty="targetName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="rights" property="rights" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="path" property="hierarchy" hideable="true"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="identityHistoryByItemTableColumns">
+            <value>
+              <List>
+                <ColumnConfig property="id" fieldOnly="true"/>
+                <ColumnConfig property="type" fieldOnly="true"/>
+                <ColumnConfig property="status" headerKey="cert_item_view_hist_grid_hdr_action" sortable="false" width="120" />
+                <ColumnConfig property="actor" headerKey="cert_item_view_hist_grid_hdr_actor" sortable="false" width="140" />
+                <ColumnConfig property="entryDate" dateStyle="short" headerKey="cert_item_view_hist_grid_hdr_date" sortable="true" width="180"/>
+                <ColumnConfig property="comments" headerKey="msgs.cert_item_view_hist_grid_hdr_comments" sortable="false"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiIdentityHistoryByItemTableColumns">
+            <value>
+              <List>
+                <ColumnConfig property="type" dataIndex="type" fieldOnly="true" />
+                <ColumnConfig property="status" dataIndex="status" headerKey="cert_item_view_hist_grid_hdr_action" sortable="false" />
+                <ColumnConfig property="actor" dataIndex="actor" headerKey="cert_item_view_hist_grid_hdr_actor" sortable="false" />
+                <ColumnConfig property="entryDate" dataIndex="entryDate" headerKey="cert_item_view_hist_grid_hdr_date" dateStyle="l" />
+                <ColumnConfig property="comments" dataIndex="comments" headerKey="cert_item_view_hist_grid_hdr_comments" sortable="false"/>
+                <ColumnConfig property="id" fieldOnly="true"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="debugProvisioningTransactionGridColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="id" headerKey="Id" property="id" sortProperty="id" sortable="true" width="250" />
+                <ColumnConfig dataIndex="status" headerKey="Status" property="status" sortProperty="status" sortable="true" width="75" />
+                <ColumnConfig dataIndex="source" headerKey="Source" property="source" sortProperty="source" sortable="true" width="100" />
+                <ColumnConfig dataIndex="operation" headerKey="Operation" property="operation" sortProperty="operation" sortable="true" width="75" />
+                <ColumnConfig dataIndex="applicationName" headerKey="Application" property="applicationName" sortProperty="applicationName" sortable="true" width="150" />
+                <ColumnConfig dataIndex="identityName" headerKey="Identity" property="identityName" sortProperty="identityName" sortable="true" width="150" />
+                <ColumnConfig dataIndex="nativeIdentity" headerKey="Account" property="nativeIdentity" sortable="false" width="150" />
+                <ColumnConfig dataIndex="created" headerKey="Created" property="created" sortable="true" sortProperty="created" width="150" dateStyle="short" />
+                <ColumnConfig dataIndex="modified" headerKey="Modified" property="modified" sortable="true" sortProperty="modified" width="150" dateStyle="short" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiCertificationEntitiesColumns">
+            <value>
+              <List>
+                <ColumnConfig property="id" dataIndex="id" fieldOnly="true" />
+                <ColumnConfig property="targetDisplayName" dataIndex="targetDisplayName" fieldOnly="true" />
+                <ColumnConfig dataIndex="summaryStatus" property="summaryStatus" fieldOnly="true" />
+                <ColumnConfig property="delegation" dataIndex="delegation" fieldOnly="true" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiCertificationCardColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="ui_cert_completion" dataIndex="itemStatusCount" renderer="certCompletion"/>
+                <ColumnConfig headerKey="ui_cert_phase" dataIndex="phase" renderer="certPhase" />
+                <ColumnConfig headerKey="ui_cert_created_by" dataIndex="creator" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="provisioningTransactionColumns">
+              <value>
+                <List>
+                  <ColumnConfig property="id" fieldOnly="true" />
+                  <ColumnConfig property="name" headerKey="ui_prov_trans_grid_hdr_id" sortable="true" sortProperty="name" />
+                  <ColumnConfig property="operation" headerKey="ui_prov_trans_grid_hdr_operation" sortable="true" sortProperty="operation" renderer="spProvisioningTransactionOpColumn"/>
+                  <ColumnConfig property="applicationName" headerKey="ui_prov_trans_grid_hdr_application" sortable="true" sortProperty="applicationName" />
+                  <ColumnConfig property="identityName" fieldOnly="true" />
+                  <ColumnConfig property="identityDisplayName" headerKey="ui_prov_trans_grid_hdr_identity" sortable="true" sortProperty="identityDisplayName" />
+                  <ColumnConfig property="nativeIdentity" fieldOnly="true" />
+                  <ColumnConfig property="accountDisplayName" headerKey="ui_prov_trans_grid_hdr_nativeidentity" sortable="true" sortProperty="accountDisplayName" />
+                  <ColumnConfig property="source" dataIndex="source" headerKey="ui_prov_trans_grid_hdr_source" sortable="true" sortProperty="source" />
+                  <ColumnConfig property="type" dataIndex="typeMessage" headerKey="ui_prov_trans_grid_hdr_type" sortable="true" sortProperty="type" />
+                  <ColumnConfig property="integration" headerKey="ui_prov_trans_grid_hdr_integration" sortable="true" sortProperty="integration" />
+                  <ColumnConfig property="created" headerKey="ui_prov_trans_grid_hdr_created" dateStyle="short"  sortable="true" sortProperty="created" />
+                  <ColumnConfig property="status" minWidth="110" dataIndex="statusMessage" headerKey="ui_prov_trans_grid_hdr_status" sortable="true" sortProperty="status" renderer="spProvisioningTransactionStatusColumn" />
+                  <ColumnConfig dataIndex="" fixed="Right" headerKey="ui_prov_trans_grid_hdr_actions" sortable="false" hideable="false" renderer="spProvisioningTransactionActionColumn" />
+                  <ColumnConfig property="attributes" hideable="true" hidden="true" sortable="false" />
+                  <ColumnConfig property="forced" fieldOnly="true" />
+                </List>
+              </value>
+          </entry>
+          <entry key="oAuthClientConfigColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="name" headerKey="ui_oauth_grid_hdr_name" property="name" sortable="false"/>
+                <ColumnConfig dataIndex="proxyUser" headerKey="ui_oauth_grid_hdr_proxy_user" property="proxyUser" sortable="false" renderer="displayableName"/>
+                <ColumnConfig dataIndex="clientId" headerKey="ui_oauth_grid_hdr_client_id" property="clientId" sortable="false"/>
+                <ColumnConfig dataIndex="secret" headerKey="ui_oauth_grid_hdr_secret" property="secret" sortable="false" renderer="spOAuthClientConfigSecretColumn"/>
+                <ColumnConfig dataIndex="createDate" headerKey="ui_oauth_grid_hdr_create_date" property="createDate" dateStyle="short" sortable="false"/>
+                <ColumnConfig dataIndex="" fixed="Right" headerKey="ui_oauth_grid_hdr_actions" sortable="false" hideable="false" renderer="spOAuthClientConfigActionColumn"/>
+              </List>
+            </value>
+          </entry>
+          <entry key="debugTargetAssociationGridColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="id" headerKey="Id" property="id" sortProperty="id" sortable="true" stateId="id" width="250"/>
+                <ColumnConfig dataIndex="targetType" headerKey="targetType" property="targetType" sortProperty="targetType" sortable="true" stateId="targetType" width="100"/>
+                <ColumnConfig dataIndex="targetName" headerKey="targetName" property="targetName" sortProperty="targetName" sortable="true" stateId="targetName" width="250"/>
+                <ColumnConfig dataIndex="target" headerKey="Target" property="target.name" sortProperty="target.name" sortable="true" stateId="target" width="250"/>
+                <ColumnConfig dataIndex="created" dateStyle="short" headerKey="Created" property="created" sortProperty="created" sortable="true" stateId="created" width="150"/>
+    
+              </List>
+            </value>
+          </entry>
+
+          <entry key="accountGroupAccessTableColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="source" property="applicationName" sortProperty="applicationName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="type" property="targetType" sortProperty="targetType" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="value" property="targetName" sortProperty="targetName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="rights" property="rights" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="path" property="hierarchy" hideable="true"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="identityEntitlementIndirectGridColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="source" property="applicationName" sortProperty="applicationName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="type" property="targetType" sortProperty="targetType" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="value" property="targetName" sortProperty="targetName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="rights" property="rights" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="path" property="hierarchy" hideable="true"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="identityEntitlementGridColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="id" fieldOnly="true" property="id"/>
+                <ColumnConfig dataIndex="group" fieldOnly="true"/>
+                <ColumnConfig dataIndex="aggregationState" property="aggregationState" fieldOnly="true"/>
+                <ColumnConfig dataIndex="description" fieldOnly="true"/>
+                <ColumnConfig dataIndex="value" fieldOnly="true" property="value"/>
+                <ColumnConfig dataIndex="startDate" fieldOnly="true" property="startDate"/>
+                <ColumnConfig dataIndex="endDate" fieldOnly="true" property="endDate"/>
+                <ColumnConfig dataIndex="name" headerKey="label_attribute" hideable="true" percentWidth="20" property="name" sortProperty="name" sortable="true" renderer="SailPoint.Define.Grid.IdentityEntitlements.renderAttribute"/>
+                <ColumnConfig dataIndex="displayValue" headerKey="entitlement" hideable="true" percentWidth="35" renderer="SailPoint.Define.Grid.IdentityEntitlements.renderValue"/>
+                <ColumnConfig dataIndex="application" headerKey="label_application" hideable="true" percentWidth="15" property="application.name" sortProperty="application.name" sortable="true"/>
+                <ColumnConfig dataIndex="nativeIdentity" headerKey="account_name" hideable="true" property="displayName" percentWidth="15" sortProperty="displayName" sortable="true"/>
+                <ColumnConfig dataIndex="instance" headerKey="instance" hidden="true" hideable="true" property="instance" sortable="true"/>
+                <ColumnConfig dataIndex="lastCertName" headerKey="identity_entitlements_cert_last" hidden="true" hideable="true" property="certificationItem.parent.certification.name" sortable="false"/>
+                <ColumnConfig dataIndex="lastCertDate" headerKey="identity_entitlements_cert_last_date" dateStyle="short" hidden="true" hideable="true" property="certificationItem.modified" renderer="SailPoint.Manage.Grid.AccessRequests.renderDate"/>
+                <ColumnConfig dataIndex="hasPendingRequest" headerKey="identity_entitlements_has_pending_request" hidden="true" hideable="true" sortable="false"/>
+                <ColumnConfig dataIndex="pendingRequestId" headerKey="identity_entitlements_request_id" hidden="true" hideable="true" property="requestItem.identityRequest.name" sortProperty="requestItem.identityRequest.name" sortable="false" renderer="SailPoint.Define.Grid.IdentityEntitlementRoles.renderRequestId"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="debugPluginGridColumns">
+          <value>
+            <List>
+              <ColumnConfig dataIndex="id" headerKey="Id" property="id" sortProperty="id" sortable="true" width="250" />
+              <ColumnConfig dataIndex="name" headerKey="Name" property="name" sortProperty="name" sortable="true" width="250" />
+              <ColumnConfig dataIndex="displayName" headerKey="DisplayName" property="displayName" sortProperty="displayName" sortable="true" width="150" />
+              <ColumnConfig dataIndex="version" headerKey="Version" property="version" sortProperty="version" sortable="true" width="75" />
+              <ColumnConfig dataIndex="disabled" headerKey="Disabled" property="disabled" sortProperty="disabled" sortable="true" width="150" />
+              <ColumnConfig dataIndex="rightRequired" headerKey="RightRequired" property="rightRequired" sortProperty="rightRequired" sortable="true" width="150" />
+              <ColumnConfig dataIndex="position" headerKey="Position" property="position" sortable="true" width="75" />
+              <ColumnConfig dataIndex="certificationLevel" headerKey="CertificationLevel" property="certificationLevel" sortable="true" width="150" />
+              <ColumnConfig dataIndex="created" headerKey="Created" property="created" sortable="true" sortProperty="created" width="150" dateStyle="short" />
+              <ColumnConfig dataIndex="modified" headerKey="Modified" property="modified" sortable="true" sortProperty="modified" width="150" dateStyle="short" />
+            </List>
+          </value>
+        </entry>
+
+          <entry key="debugAlertGridColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="id" headerKey="Id" property="id" sortProperty="id" sortable="true" width="250" />
+                <ColumnConfig dataIndex="name" headerKey="Name" property="name" sortProperty="name" sortable="true" width="100"/>
+                <ColumnConfig dataIndex="displayName" headerKey="DisplayName" property="displayName" sortable="true" sortProperty="displayName" width="150"/>
+                <ColumnConfig dataIndex="type" headerKey="Type" property="type" sortable="true" sortProperty="type" width="150"/>
+                <ColumnConfig dataIndex="targetType" headerKey="TargetType" property="targetType" sortable="true" sortProperty="targetType" width="150"/>
+                <ColumnConfig dataIndex="targetDisplayName" headerKey="TargetName" property="targetDisplayName" sortable="true" sortProperty="targetDisplayName" width="150"/>
+                <ColumnConfig dataIndex="alertDate" headerKey="AlertDate" property="alertDate" sortProperty="alertDate" sortable="true" width="150" dateStyle="short"/>
+                <ColumnConfig dataIndex="created" headerKey="Created" property="created" sortable="true" sortProperty="created" width="150" dateStyle="short" />
+                <ColumnConfig dataIndex="lastProcessed" headerKey="LastProcessed" property="lastProcessed" sortable="true" sortProperty="lastProcessed" width="150" dateStyle="short" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="debugAlertDefinitionGridColumns">
+            <value>
+              <List>
+                <ColumnConfig dataIndex="id" headerKey="Id" property="id" sortProperty="id" sortable="true" width="250" />
+                <ColumnConfig dataIndex="name" headerKey="Name" property="name" sortProperty="name" sortable="true" width="250" />
+                <ColumnConfig dataIndex="displayName" headerKey="DisplayName" property="displayName" sortable="true" sortProperty="displayName" width="150"/>
+                <ColumnConfig dataIndex="created" headerKey="Created" property="created" sortable="true" sortProperty="created" width="150" dateStyle="short" />
+                <ColumnConfig dataIndex="modified" headerKey="Modified" property="modified" sortable="true" sortProperty="modified" width="150" dateStyle="short" />
+                <ColumnConfig dataIndex="disabled" headerKey="Disabled" property="disabled" sortProperty="disabled" sortable="true" width="50" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="alertColumns">
+            <value>
+              <List>
+                <ColumnConfig property="id" fieldOnly="true" />
+                <ColumnConfig dataIndex="name" headerKey="ui_alert_grid_hdr_name" property="name" sortable="true"/>
+                <ColumnConfig dataIndex="displayName" headerKey="ui_alert_grid_hdr_display_name" property="displayName" sortable="true"/>
+                <ColumnConfig dataIndex="source" headerKey="ui_alert_grid_hdr_source" property="source.name" sortable="true"/>
+                <ColumnConfig dataIndex="alertDate" headerKey="ui_alert_grid_hdr_alert_date" property="alertDate" dateStyle="short" sortable="true"/>
+                <ColumnConfig dataIndex="" fixed="Right" headerKey="ui_alert_grid_hdr_actions" sortable="false" hideable="false" renderer="spAlertActionColumn" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiAccountGroupMemberTableColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="name" dataIndex="name" property="identity.name" sortProperty="identity.name" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="firstName" dataIndex="firstName" property="identity.firstname" sortProperty="identity.firstname" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="lastName" dataIndex="lastName" property="identity.lastname" sortProperty="identity.lastname" sortable="true" hideable="true"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiAccountGroupAccessTableColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="source" dataIndex="applicationName" property="applicationName" sortProperty="applicationName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="type" dataIndex="targetType" property="targetType" sortProperty="targetType" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="value" dataIndex="targetName" property="targetName" sortProperty="targetName" sortable="true" hideable="true"/>
+                <ColumnConfig headerKey="rights" dataIndex="rights" property="rights" sortable="false" hideable="true"/>
+                <ColumnConfig headerKey="path" dataIndex="hierarchy" property="hierarchy" hideable="true"/>
+              </List>
+            </value>
+          </entry>
+
+          <entry key="uiInheritedGroupsTableColumns">
+            <value>
+              <List>
+                <ColumnConfig headerKey="ui_inherited_group_name" property="displayableName" dataIndex="displayValue" sortable="true" percentWidth="20" />
+                <ColumnConfig headerKey="ui_inherited_group_application" property="application.name" dataIndex="application" sortable="true" percentWidth="20" />
+                <ColumnConfig headerKey="ui_inherited_group_attribute" property="attribute" dataIndex="attribute" sortable="true" percentWidth="20" />
+                <ColumnConfig headerKey="ui_inherited_group_value" property="value" dataIndex="value" sortable="true" percentWidth="20" />
+                <ColumnConfig headerKey="ui_inherited_group_owner" property="owner.displayName" dataIndex="owner" sortable="true" percentWidth="20" />
+              </List>
+            </value>
+          </entry>
+
+          <entry key="alertDefinitionColumns">
+            <value>
+              <List>
+                <ColumnConfig property="id" fieldOnly="true" />
+                <ColumnConfig dataIndex="name" headerKey="ui_alert_definition_grid_hdr_name" property="name" sortable="true"/>
+                <ColumnConfig dataIndex="displayName" headerKey="ui_alert_definition_grid_hdr_displayName" property="displayName" sortable="true"/>
+                <ColumnConfig dataIndex="description" headerKey="ui_alert_definition_grid_hdr_description" property="description"/>
+                <ColumnConfig dataIndex="created" headerKey="ui_alert_definition_grid_hdr_created" property="created" dateStyle="short" sortable="true"/>
+                <ColumnConfig dataIndex="disabled" headerKey="ui_alert_definition_grid_hdr_status" property="disabled" renderer="spAlertDefinitionStatusColumnDirective"/>
+                <ColumnConfig dataIndex="" fixed="Right" headerKey="ui_alert_def_grid_hdr_actions" sortable="false" hideable="false" renderer="spAlertDefinitionActionColumnDirective" />
+              </List>
+            </value>
+          </entry>
+        </Map>
+      </Attributes>
+    </UIConfig>
+  </ImportAction>
+
+    <TaskDefinition name="Effective Access Index Refresh">
+        <Description>
+          Calculate the indirect target associations (Tcodes, etc.) for entitlements and roles.
+        </Description>
+        <Parent>
+          <Reference class="sailpoint.object.TaskDefinition" name="Effective Access Indexing"/>
+        </Parent>
+        <Attributes>
+          <Map>
+            <entry key='indexRoleTargets' value='true'/>
+            <entry key='indexEntitlementTargets' value='true'/>
+          </Map>
+        </Attributes>
+    </TaskDefinition>
+
+    <ImportAction name="merge">
+      <Configuration name="WebResource">
+        <Attributes>
+          <Map>
+            <entry key="webResources">
+              <value>
+                <List>
+
+                  <WebResource rights="FullAccessDebugPage" url="debug/connections.jsf" />
+                  <WebResource rights="FullAccessDebugPage" url="debug/count.jsf" />
+                  <WebResource rights="FullAccessDebugPage" url="debug/edit.jsf" />
+                  <WebResource rights="FullAccessDebugPage" url="debug/list.jsf" />
+                  <WebResource rights="FullAccessDebugPage" url="debug/metersGrid.jsf" />
+                  <WebResource rights="FullAccessDebugPage" url="debug/result.jsf" />
+                  <WebResource rights="FullAccessDebugPage" url="debug/timeMachine.jsf" />
+                  <WebResource rights="FullAccessDebugPage" url="debug/view.jsf" />
+
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/authQuestions.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/email.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/identitiesSettings.jsf" />
+                  <WebResource rights="ImportFromFile" url="systemSetup/importResults.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/mailSettings.jsf" />
+                  <WebResource rights="FullAccessLoginConfig" url="systemSetup/login.jsf"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/loginContent.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/miscellaneous.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/objectAttribute.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/objectConfigCommon.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/passReset.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/passwords.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/roleObjectAttribute.jsf"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/roles.jsf"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/roleType.jsf"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/roleTypeIncludedAttributes.jsf"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/roleTypeIncludedAttributesDataSource.*"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/roleTypesDataSource.*"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/roleTypesGrid.jsf"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/smsReset.jsf" />
+                  <WebResource rights="FullAccessLoginConfig" url="systemSetup/ssoConfig.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/workItemSettings.jsf" />
+
+                  <WebResource rights="FullAccessDynamicScope, ViewQuickLinks" url="systemSetup/quicklinkPopulationConfiguration.jsf" />
+                  <WebResource rights="FullAccessDynamicScope, ViewQuickLinks" url="systemSetup/quicklinkPopulationQuicklinksDataSource.*" />
+
+                  <WebResource rights="FullAccessAccountMapping" url="systemSetup/accounts/accountMappingsDataSource.*" />
+                  <WebResource rights="FullAccessAccountMapping" url="systemSetup/accounts/addSource.jsf" />
+                  <WebResource rights="FullAccessAccountMapping" url="systemSetup/accounts/deleteSource.jsf" />
+                  <WebResource rights="FullAccessAccountMapping" url="systemSetup/accounts/editIdentityAttribute.jsf" />
+                  <WebResource rights="FullAccessAccountMapping" url="systemSetup/accounts/selectIdentitySource.jsf" />
+
+                  <WebResource rights="FullAccessIdentityMapping" url="systemSetup/identities/addIdentitySource.jsf" />
+                  <WebResource rights="FullAccessIdentityMapping" url="systemSetup/identities/addIdentityTarget.jsf" />
+                  <WebResource rights="FullAccessIdentityMapping" url="systemSetup/identities/deleteIdentitySource.jsf" />
+                  <WebResource rights="FullAccessIdentityMapping" url="systemSetup/identities/editIdentityAttribute.jsf" />
+                  <WebResource rights="FullAccessIdentityMapping" url="systemSetup/identities/identityMappingsDataSource.json" />
+                  <WebResource rights="FullAccessIdentityMapping" url="systemSetup/identities/selectIdentitySource.jsf" />
+
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/lcm/additionalOptions.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/lcm/businessProcesses.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/lcm/identityPolicy.jsf"/>
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/lcm/lifecycleActions.jsf" />
+                  <WebResource rights="FullAccessSystemConfig" url="systemSetup/lcm/lifecycleActionsInclude.jsf" />
+
+                  <WebResource rights="FullAccessOAuthClientConfiguration, ViewOAuthClientConfiguration" url="systemSetup/index.jsf">
+                      <ChildResources>
+                          <String>systemSetup/apiAuthentication.jsf</String>
+                    </ChildResources>
+                  </WebResource>
+                  <WebResource rights="FullAccessOAuthClientConfiguration, ViewOAuthClientConfiguration" url="systemSetup/apiAuthentication.jsf"/>
+
+                  <WebResource rights="FullAccessBatchRequest" url="manage/batchRequest/createBatchRequest.jsf"/>
+
+                  <WebResource rights="ViewAccountGroups" url="analyze/accountGroup/accountGroupDataSource.*" />
+                  <WebResource rights="ViewActivity" url="analyze/activity/activityDataSource.*" />
+                  <WebResource rights="ViewIdentity, SetIdentityPassword, SetIdentityCapability, DeleteIdentityLink, MoveIdentityLink, DeleteIdentitySnapshot, MonitorIdentityActivity"
+                               url="analyze/identity/advancedIdentityDataSource.*" />
+                  <WebResource rights="FullAccessApplicationRisk" url="manage/riskScores/appRiskScoresDataSource.*"/>
+                  <WebResource rights="ViewAuditLog" url="analyze/audit/auditDataSource.*" />
+                  <WebResource rights="FullAccessIdentityRiskModel, FullAccessApplicationRiskModel, FullAccessIdentityRisk, FullAccessApplicationRisk" url="define/riskScores/bandConfigJSON.*" />
+                  <WebResource rights="FullAccessBatchRequest" url="manage/batchRequest/batchItemsDataSource.*"/>
+                  <WebResource rights="FullAccessBatchRequest" url="manage/batchRequest/batchRequestsDataSource.*"/>
+                  <WebResource rights="FullAccessIdentityRiskModel" url="define/riskScores/businessRoleScoringInclude.jsf" />
+                  <WebResource rights="ViewCertifications" url="analyze/certification/certificationDataSource.*" />
+                  <WebResource rights="FullAccessIdentityRiskModel" url="define/riskScores/certificationsInclude.jsf" />
+                  <WebResource rights="FullAccessIdentityRiskModel" url="define/riskScores/entitlementScoringInclude.jsf" />
+                  <WebResource rights="ViewIdentity, SetIdentityPassword, SetIdentityCapability, DeleteIdentityLink, MoveIdentityLink, DeleteIdentitySnapshot, MonitorIdentityActivity"
+                               url="analyze/identity/identityDataSource.*" />
+                  <WebResource rights="ViewIdentityRequest" url="analyze/identityRequest/identityRequestDataSource.*" />
+                  <WebResource rights="ViewLink" url="analyze/link/linkDataSource.*" />
+                  <WebResource rights="ViewRole, ManageRole" url="define/roles/miningTemplatesDataSource.*"/>
+                  <WebResource rights="FullAccessIdentityRiskModel" url="define/riskScores/policyViolationsBARInclude.jsf"/>
+                  <WebResource rights="*" url="manage/policyViolations/policyViolationsDataSource.*"/>
+                  <WebResource rights="FullAccessIdentityRiskModel" url="define/riskScores/policyViolationsInclude.jsf"/>
+                  <WebResource rights="FullAccessIdentityRisk" url="manage/riskScores/riskScoresDataSource.*"/>
+                  <WebResource rights="ViewRole" url="analyze/role/roleDataSource.*" />
+                  <WebResource rights="FullAccessWorkflows" url="include/subprocessesDataSource.*"/>
+                  <WebResource rights="FullAccessWorkflows" url="define/workflow/workflowDataSource.*"/>
+                  <WebResource rights="ViewSyslog" url="analyze/syslog/syslogDataSource.*" />
+
+                  <WebResource rights="FullAccessPlugin" url="plugins/plugins.jsf" />
+                  <WebResource rights="*" url="plugins/pluginPage.jsf" />
+
+                  <WebResource rights="FullAccessProvisioningTransaction, ViewProvisioningTransaction" url="adminConsole/index.jsf">
+                    <ChildResources>
+                      <String>adminConsole/*</String>
+                    </ChildResources>
+                  </WebResource>
+                  <WebResource rights="FullAccessProvisioningTransaction, ViewProvisioningTransaction" url="adminConsole/*"/>
+                  <WebResource rights="ViewAlert, FullAccessAlertDefinition, ViewAlertDefinition" url="define/alerts/*"/>
+
+                  <WebResource rights="ManagedAttributePropertyAdministrator, ManagedAttributeProvisioningAdministrator" url="define/groups/entitlementCatalogDataSource.jsf"/>
+                  <WebResource rights="ViewPopulations, FullAccessGroup" url="define/groups/populationsDataSource.jsf"/>
+                  <WebResource rights="ViewPopulations, FullAccessGroup" url="define/groups/populationsDataSource.json"/>
+                  <WebResource rights="ViewGroups, FullAccessGroup" url="define/groups/groupsDataSource.jsf" />
+                  <WebResource rights="ViewGroups, FullAccessGroup" url="define/groups/groupsDataSource.json" />
+                </List>
+              </value>
+            </entry>
+          </Map>
+        </Attributes>
+      </Configuration>
+    </ImportAction>
+
+    <ImportAction name="merge">
+      <Configuration name="SystemConfiguration">
+        <Attributes>
+          <Map>
+            <entry key="searchInputDefinitions">
+              <value>
+                <List>
+                  <SearchInputDefinition description="srch_input_def_effective_access" excludeDisplayFields="true" ignoreCase="true"
+                                         inputType="Equal" name="accountGroup.associations"
+                                         propertyName="associations.targetName" propertyType="String" searchType="AccountGroup"/>
+                  <SearchInputDefinition description="srch_input_def_effective_access" ignoreCase="true"
+                                         inputType="Equal" name="role.associations" propertyName="associations.targetName"
+                                         propertyType="String" excludeDisplayFields="true" searchType="Role"/>
+                  <SearchInputDefinition description="srch_input_def_audit_interface" headerKey="srch_input_def_audit_interface" ignoreCase="true"
+                                         inputType="Equal" name="audit.interface"
+                                         propertyName="interface" propertyType="String" searchType="Audit"/>
+                  <SearchInputDefinition description="srch_input_def_request_verified" headerKey="srch_input_def_request_verified"
+                                         inputType="Equal" name="identityRequest.verified"
+                                         propertyName="verified" propertyType="Date" searchType="IdentityRequest" filterBuilder="sailpoint.search.NotNullFilterBuilder"/>
+                </List>
+              </value>
+            </entry>
+            <entry key="mobileQuickLinkCards" value="Mobile Access Reviews, Mobile Approvals, Forms, Mobile Violation Reviews" />
+          </Map>
+        </Attributes>
+      </Configuration>
+    </ImportAction>
+
+  <ImportAction name="merge">
+    <Configuration name='IdentitySelectorConfiguration'>
+      <Attributes>
+        <Map>
+          <entry key="identityFilters">
+            <value>
+              <Map>
+                <entry key="DelegationRecipient">
+                  <value>
+                    <IdentityFilter name="DelegationRecipient">
+                      <FilterScript>
+                        <Script>
+                          <Source>
+                            return sailpoint.api.IdentityService.getDelegationRecipientSuggestQueryOptions(context, itemId, query);
+                          </Source>
+                        </Script>
+                      </FilterScript>
+                    </IdentityFilter>
+                  </value>
+                </entry>
+              </Map>
+            </value>
+          </entry>
+        </Map>
+      </Attributes>
+    </Configuration>
+  </ImportAction>
+
+  <ImportAction name="merge">
+    <ObjectConfig name="Alert"/>
+  </ImportAction>
+
+  <RequestDefinition name="Partitioned Alert Processing"
+                     executor="sailpoint.request.AlertProcessorRequestExecutor"
+                     retryMax="20">
+    <Attributes>
+      <Map>
+        <entry key='maxThreads' value='1'/>
+      </Map>
+    </Attributes>
+  </RequestDefinition>
+
+  <ServiceDefinition name="PluginSync" interval="60" hosts="global">
+    <Description>
+      Service definition for the plugins sync service.
+    </Description>
+  </ServiceDefinition>
+
+  <!-- End of object updates -->
+
+  <ImportAction name="merge">
+    <QuickLink name="Policy Violations" category="Tasks"
+      messageKey="quicklink_policy_violations" action="listViolations" cssClass="quicklink-policy-violations">
+        <Attributes>
+          <Map>
+            <entry key="displayText" value="true" />
+            <entry key="ownerId">
+              <value>
+                <Script>
+                  <Source>
+                    return currentUser.getId();
+                  </Source>
+                </Script>
+              </value>
+            </entry>
+            <entry key="textScript">
+              <value>
+                <Script>
+                  <Source>
+                    <![CDATA[
+                      import sailpoint.object.PolicyViolation;
+                      import sailpoint.object.QueryOptions;
+                      import sailpoint.object.Filter;
+                      import sailpoint.object.Identity;
+                      import java.util.List;
+                      import java.util.ArrayList;
+                      QueryOptions qo = new QueryOptions();
+                      List filters = new ArrayList();
+                      filters.add(Filter.eq("owner", currentUser));
+                      if (currentUser.getWorkgroups() != null && !currentUser.getWorkgroups().isEmpty()) {
+                          filters.add(Filter.in("owner", currentUser.getWorkgroups()));
+                      }
+                      qo.addFilter(Filter.or(filters));
+                      qo.addFilter(Filter.eq("status", PolicyViolation.Status.Open));
+                      qo.addFilter(Filter.eq("active", Boolean.TRUE));
+                      int count = context.countObjects(PolicyViolation.class, qo);
+                      return count;
+                    ]]>
+                  </Source>
+                </Script>
+              </value>
+            </entry>
+          </Map>
+        </Attributes>
+      <Description>quicklink_policy_violations_desc</Description>
+    </QuickLink>
+
+    <QuickLink name="Access Reviews" category="Tasks"
+               messageKey="quicklink_access_reviews" action="viewCertifications" cssClass="quicklink-access-reviews">
+      <Attributes>
+        <Map>
+          <entry key="displayText" value="true" />
+          <entry key="textScript">
+            <value>
+              <Script>
+                <Source>
+                  <![CDATA[
+                    import sailpoint.object.Certification;
+                    import sailpoint.object.Filter;
+                    import sailpoint.object.QueryOptions;
+                    import sailpoint.service.certification.CertificationListService;
+
+                    QueryOptions qo = new QueryOptions();
+                    qo.addFilter(CertificationListService.getMyCertificationsFilter(currentUser, false));
+
+                    int count = context.countObjects(Certification.class, qo);
+                    return count;
+                  ]]>
+                </Source>
+              </Script>
+            </value>
+          </entry>
+          <entry key="textAriaLabel" value="quicklink_access_reviews_text_aria_label" />
+        </Map>
+      </Attributes>
+      <Description>quicklink_access_reviews_desc</Description>
+    </QuickLink>
+  </ImportAction>
+
+  <QuickLink name="Mobile Access Reviews" category="Tasks"
+             messageKey="quicklink_access_reviews" action="viewCertifications"
+             cssClass="quicklink-access-reviews" hidden="true">
+    <Attributes>
+      <Map>
+        <entry key="displayText" value="true" />
+        <entry key="textScript">
+          <value>
+            <Script>
+              <Source>
+                <![CDATA[
+                  import sailpoint.object.Certification;
+                  import sailpoint.object.Filter;
+                  import sailpoint.object.QueryOptions;
+                  import sailpoint.service.certification.CertificationListService;                                    
+                  
+                  QueryOptions qo = new QueryOptions();
+                  qo.addFilter(CertificationListService.getMyCertificationsFilter(currentUser, true));
+
+                  int count = context.countObjects(Certification.class, qo);
+                  return count;
+                ]]>
+              </Source>
+            </Script>
+          </value>
+        </entry>
+        <entry key="textAriaLabel" value="quicklink_access_reviews_text_aria_label" />
+      </Map>
+    </Attributes>
+    <Description>quicklink_access_reviews_desc</Description>
+    <QuickLinkOptions allowSelf="true">
+      <DynamicScopeRef>
+        <Reference class="sailpoint.object.DynamicScope" name="Everyone"/>
+      </DynamicScopeRef>
+    </QuickLinkOptions>
+  </QuickLink>
+
+
+  <TaskDefinition name="Account Aggregation" executor="sailpoint.task.ResourceIdentityScan"
+                formPath="/monitor/tasks/accountAggregationTask.xhtml" progressInterval="5000"
+                progressMode="String" template="true" type="AccountAggregation">
+    <Description>
+      Task template for application account scanning.
+    </Description>
+    <!-- optimization is no on by default -->
+    <Signature>
+      <Inputs>                
+        <Argument multi="true" name="applications" required="true" type="Application" helpKey="help_task_select_apps">
+          <Prompt>task_in_account_aggregation_applications</Prompt>
+        </Argument>
+        <!--
+          This is obscure and hard to describe, assume that we're always scanning
+          accounts and make the Application author set up the default mapping.
+            <Argument name='schema' type='string'>
+              <Description>
+                Optional name of the application object class to return in the
+                account iterator. If not specified defaults to iterating over
+                "account" objects with the default schema designated in the
+                Application definition.
+              </Description>
+            </Argument>
+        -->
+        <!--
+          Correlation rules are now defined on the Application.
+          We may still want another list of rules to use if the application rules
+          fail but this seems unlikely.  Keep it out for now.
+          Note that this still used by some of the unit tests.
+            <Argument name='correlationRules' type='Rule'
+                      filterString='type == Rule.Type.Correlation' multi='true'>
+              <Prompt>
+                Select one or more correlation rules.  If none are selected,
+                the designated identity attribute from the application is
+                assumed to match the name of a IdentityIQ identity:
+              </Prompt>
+            </Argument>
+        -->
+        <!--
+          Note that we have creation rules on the Application now too but
+          that is intended primarily for setting the identity name.  It makes
+          sense to also have a generic creation rule to assign the capabilities
+          since that isn't application dependent.
+        -->
+              
+        <Argument filterString="type == Rule.Type.IdentityCreation" name="creationRule" type="Rule" helpKey="help_task_identity_creation_rule">
+          <Prompt>task_in_account_aggregation_creation_rule</Prompt>
+        </Argument>
+        <Argument name="correlateEntitlements" type="boolean" helpKey="help_task_refresh_roles">
+          <Prompt>task_in_account_aggregation_correlate_entitlements</Prompt>
+        </Argument>
+        <Argument name="checkPolicies" type="boolean" helpKey="help_task_apply_active_policies">
+          <Prompt>task_in_account_aggregation_check_policies</Prompt>
+        </Argument>
+        <Argument name="refreshScorecard" type="boolean" helpKey="help_task_refresh_risk_scores">
+          <Prompt>task_in_account_aggregation_refresh_scorecard</Prompt>
+        </Argument>
+        <Argument name="checkHistory" type="boolean" helpKey="help_task_maintain_history">
+          <Prompt>task_in_account_aggregation_check_history</Prompt>
+        </Argument>
+        <Argument name='deltaAggregation' type='boolean' required='false' helpKey="help_task_delta_aggregation">
+          <Prompt>task_in_account_aggregation_delta</Prompt>
+        </Argument>
+        <Argument name='checkDeleted' type='boolean' required='false' helpKey="help_task_detect_deleted_accts">
+          <Prompt>task_in_account_aggregation_check_deleted</Prompt>
+        </Argument>
+        <Argument name="correlateScope" type="boolean" helpKey="help_task_refresh_scopes">
+          <Prompt>task_in_account_aggregation_correlate_scope</Prompt>
+        </Argument>
+        <Argument name="noAutoCreateScopes" type="boolean" helpKey="help_task_disable_scope_autocreate">
+          <Prompt>task_in_account_aggregation_no_auto_create_scopes</Prompt>
+        </Argument>
+        <Argument name="noNeedsRefresh" type="boolean" helpKey="help_task_no_needs_refresh">
+          <Prompt>task_in_account_aggregation_no_needs_refresh</Prompt>
+        </Argument>
+        <Argument multi="true" name="logAllowedActions" type="string" helpKey="help_task_included_actions">
+          <Prompt>task_in_account_aggregation_log_allowed_actions</Prompt>
+        </Argument>
+        <Argument name="refreshCertifications" type="boolean" helpKey="help_task_refresh_continuous_certs">
+          <Prompt>task_in_account_aggregation_refresh_certifications</Prompt>
+        </Argument>
+        <Argument name="noOptimizeReaggregation" type="boolean" helpKey="help_task_no_optimize_reagg">
+          <Prompt>task_in_account_aggregation_no_optimize_reagg</Prompt>
+        </Argument>
+        <Argument name="promoteManagedAttributes" type="boolean" helpKey="help_task_promote_managed_entitlements">
+          <Prompt>task_in_account_aggregation_promote_managed_attributes</Prompt>
+        </Argument>
+        <Argument name="noAutoCreateApplications" type="boolean" helpKey="help_task_no_autocreate_apps">
+          <Prompt>task_in_account_aggregation_no_autocreate_apps</Prompt>
+        </Argument>
+        <Argument name="updateMultiplexedSchemas" type="boolean">
+          <Prompt>task_in_account_aggregation_update_schemas</Prompt>
+        </Argument>
+        <!--
+          For certification event processing we need to snapshot certain parts of the
+          identity when an account is aggregated (or the entire identity for rule-based
+          events).  This can potentially slow things down, but is required for events
+          to work correctly.  Only enable this option if you are seeing aggregation
+          performance problems and want to pull out all the stops.
+            <Argument name="noTriggerSnapshotting" type="boolean">
+              <Prompt>Check to prevent identity snapshots for events</Prompt>
+            </Argument>
+        -->
+        <!--
+          Usually dangerous to do this from an aggregation since any scope that wasn't
+          encountered during scope correlation will be marked as dormant.  This should
+          only be used if all identities will be processed during aggregation.
+            <Argument name='markDormantScopes' type='boolean' required='false'>
+              <Prompt>Check to mark dormant scopes after aggregation:</Prompt>
+            </Argument>
+        -->
+        <!--
+          In theory this is useful if you have an authoritative application
+          e.g. HR system, and secondary applications, and you are always
+          supposed to correlate from the secondary to the primary.-->
+        <Argument name='correlateOnly' type='boolean' helpKey="help_tasK_correlate_only">
+          <Prompt>task_in_account_aggregation_correlate_only</Prompt>
+        </Argument>
+             
+        <!--
+          This is unlikely to be used except in development
+            <Argument name='haltOnError' type='boolean' required='false'>
+              <Prompt>Halt aggregation after the first account error:</Prompt>
+            </Argument>
+        -->
+        <!--
+          This we decided not to show in the UI since it can be easily misused
+            <Argument name='maxConnectionAge' type='int' required='false'>
+              <Prompt>Clear caches after this many accounts:</Prompt>
+            </Argument>
+        -->
+        <!--
+          <Argument name='lockMode' type='string'>
+            <Prompt>Type of lock to acquire: none, transaction, persistent:</Prompt>
+          </Argument>
+        -->
+        <Argument name="enablePartitioning" type="boolean" helpKey="help_task_account_agg_enable_partitioning">
+          <Prompt>task_in_account_aggregation_enable_partitioning</Prompt>
+        </Argument>
+
+        <Argument name="objectsPerPartition" type="int" helpKey="help_task_objects_per_partition">
+          <Prompt>task_in_account_aggregation_objects_per_partition</Prompt>
+        </Argument>
+        <Argument name="haltOnMaxError" type="boolean" helpKey="help_task_account_agg_halt_on_max_error">
+          <Prompt>task_in_account_aggregation_halt_on_max_error</Prompt>
+        </Argument>
+        <Argument name="maxErrorThreshold" type="int" helpKey="help_task_account_agg_max_error_threshold">
+          <Prompt>task_in_account_aggregation_max_error_threshold</Prompt>
+        </Argument>
+        <Argument name="sequential" type="boolean" helpKey="help_task_sequential">
+          <Prompt>task_in_account_aggregation_sequential</Prompt>
+        </Argument>
+        <Argument name="checkDeletedThreshold" type="string" helpKey="help_task_check_deleted_threshold">
+          <Prompt>task_in_account_aggregation_check_deleted_threshold</Prompt>
+        </Argument>
+      </Inputs>
+      <Returns>
+        <Argument name="applications" type="string">
+          <Prompt>task_out_account_aggregation_applications</Prompt>
+        </Argument>
+        <Argument name="total" type="int">
+          <Prompt>task_out_account_aggregation_total</Prompt>
+        </Argument>
+        <Argument name="ignored" type="int">
+          <Prompt>task_out_account_aggregation_ignored</Prompt>
+        </Argument>
+        <Argument name="optimized" type="int">
+          <Prompt>task_out_account_aggregation_optimized</Prompt>
+        </Argument>
+        <Argument name="created" type="int">
+          <Prompt>task_out_account_aggregation_created</Prompt>
+        </Argument>
+        <Argument name="updated" type="int">
+          <Prompt>task_out_account_aggregation_updated</Prompt>
+        </Argument>
+        <Argument name="deleted" type="int">
+          <Prompt>task_out_account_aggregation_deleted</Prompt>
+        </Argument>
+        <Argument name="managerChanges" type="int">
+          <Prompt>task_out_account_aggregation_manager_changes</Prompt>
+        </Argument>
+        <Argument name="detectedRoleChanges" type="int">
+          <Prompt>task_out_account_aggregation_business_role_changes</Prompt>
+        </Argument>
+        <Argument name="exceptionChanges" type="int">
+          <Prompt>task_out_account_aggregation_exception_changes</Prompt>
+        </Argument>
+        <Argument name="policies" type="string">
+          <Prompt>task_out_account_aggregation_policies</Prompt>
+        </Argument>
+        <Argument name="policyViolations" type="int">
+          <Prompt>task_out_account_aggregation_policy_violations</Prompt>
+        </Argument>
+        <Argument name="policyNotifications" type="int">
+          <Prompt>task_out_account_aggregation_policy_notifications</Prompt>
+        </Argument>
+        <Argument name="scoresChanged" type="int">
+          <Prompt>task_out_account_aggregation_scores_changed</Prompt>
+        </Argument>
+        <Argument name="snapshotsCreated" type="int">
+          <Prompt>task_out_account_aggregation_snapshots_created</Prompt>
+        </Argument>
+        <Argument name="scopesCreated" type="int">
+          <Prompt>task_out_account_aggregation_scopes_created</Prompt>
+        </Argument>
+        <Argument name="scopesCorrelated" type="int">
+          <Prompt>task_out_account_aggregation_scopes_correlated</Prompt>
+        </Argument>
+        <Argument name="scopesSelected" type="int">
+          <Prompt>task_out_account_aggregation_scopes_selected</Prompt>
+        </Argument>
+        <Argument name="scopesDormant" type="int">
+          <Prompt>task_out_account_aggregation_scopes_dormant</Prompt>
+        </Argument>
+        <Argument name="unscopedIdentities" type="int">
+          <Prompt>task_out_account_aggregation_unscoped_identities</Prompt>
+        </Argument>
+        <Argument name="certificationsCreated" type="int">
+          <Prompt>task_out_account_aggregation_certifications_created</Prompt>
+        </Argument>
+        <Argument name="certificationsDeleted" type="int">
+          <Prompt>task_out_account_aggregation_certifications_deleted</Prompt>
+        </Argument>
+        <Argument name="applicationsGenerated" type="int">
+          <Prompt>task_out_account_aggregation_applications_generated</Prompt>
+        </Argument>
+        <Argument name="managedAttributesCreated" type="int">
+          <Prompt>task_out_account_aggregation_managed_attributes_promoted</Prompt>
+        </Argument>
+        <Argument name="managedAttributesCreatedByApplication" type="string">
+          <Prompt>task_out_account_aggregation_managed_attributes_promoted_by_app</Prompt>
+        </Argument>
+        <Argument name="identityEntitlementsCreated" type="int">
+          <Prompt>task_out_account_aggregation_identityEntitlements_created</Prompt>
+        </Argument>
+      </Returns>
+    </Signature>
+  </TaskDefinition>
+
+  <ImportAction name="merge">
+    <FullTextIndex name="BundleManagedAttribute">
+      <Attributes>
+        <Map>
+          <entry key='includeTargets' value='true'/>
+        </Map>
+      </Attributes>
+    </FullTextIndex>
+  </ImportAction>
+
+  <DashboardContent regionSize="0" name="Online Tutorials" title="dash_title_online_tutorials"
+                    source="dashboard/contentFlashBasedTraining.xhtml" type="My">
+    <Description>dash_description_online_tutorials</Description>
+    <Attributes>
+      <Map>
+        <entry key="tutorials">
+          <value>
+            <List>
+              <Map>
+                <entry key="title_key" value="help_tutorial_access_review_identity"/>
+                <entry key="description_key" value="help_tutorial_access_review_identity_description"/>
+                <entry key="page" value="manager_access_review/manager_access_review/index.html"/>
+              </Map>
+              <Map>
+                <entry key="title_key" value="help_tutorial_access_review_entitlement"/>
+                <entry key="description_key" value="help_tutorial_access_review_entitlement_description"/>
+                <entry key="page" value="entitlement_owner_access_review/entitlement_owner_access_review/index.html"/>
+              </Map>
+              <Map>
+                <entry key="title_key" value="help_tutorial_home_page_overview"/>
+                <entry key="description_key" value="help_tutorial_home_page_overview"/>
+                <entry key="page" value="home_page/home_page/index.html"/>
+              </Map>
+            </List>
+          </value>
+        </entry>
+      </Map>
+    </Attributes>
+  </DashboardContent>
+
+</sailpoint>

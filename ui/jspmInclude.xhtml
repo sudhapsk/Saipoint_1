@@ -1,0 +1,15 @@
+<html
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:ui="http://java.sun.com/jsf/facelets">
+<h:head>
+  <ui:composition>
+    <!-- Include core JSPM scripts and set baseURL. This should be included in processhtml block so it is overwritten for production -->
+    <script type="text/javascript" src="#{base.requestContextPath}/ui/jspm_packages/system-polyfills.js"></script>
+    <script type="text/javascript" src="#{base.requestContextPath}/ui/jspm_packages/system.js"></script>
+    <script type="text/javascript">
+      System.config({ baseURL: '#{base.requestContextPath}/ui'});
+    </script>
+    <script type="text/javascript" src="#{base.requestContextPath}/ui/jspm.config.js"></script>
+  </ui:composition>
+</h:head>
+</html>

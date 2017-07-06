@@ -1,0 +1,46 @@
+<!-- (c) Copyright 2016 SailPoint Technologies, Inc., All Rights Reserved. -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:sp="http://sailpoint.com/ui"
+      xmlns:ui="http://java.sun.com/jsf/facelets">
+<body>
+
+<ui:composition template="/ngAppPage.xhtml">
+  <ui:define name="headerItems">
+
+    <ui:include src="/ui/scriptData.xhtml" />
+
+    <script>
+      SailPoint.configData.ACCESS_REQUEST_ALLOW_PRIORITY_EDITING = #{sp:getSystemConfigurationValue('allowPriorityEditing', false)};
+      SailPoint.SET_IDENTITY_UNLOCK = #{sp:hasRight(facesContext, "UnlockIdentity")};
+      SailPoint.SET_IDENTITY_PASSWORD = #{sp:hasRight(facesContext, "SetIdentityPassword")};
+      SailPoint.SET_IDENTITY_FORWARDING = #{sp:hasRight(facesContext, "SetIdentityForwarding")};
+    </script>
+
+    <script src="#{base.requestContextPath}/ui/js/bundles/IdentityAppBundle.js"></script>
+  </ui:define>
+
+
+  <ui:define name="body">
+    <sp-register-config sp-config-key="disableInitialManageAccountsGridLoad"
+                        sp-config-value="#{sp:getSystemConfigurationValue('disableInitialManageAccountsGridLoad', false)}" />
+
+    <sp-register-config sp-config-key="disableInitialManagePasswordsGridLoad"
+                        sp-config-value="#{sp:getSystemConfigurationValue('disableInitialManagePasswordsGridLoad', false)}" />
+
+    <sp-register-config sp-config-key="disableInitialManageAttributesGridLoad"
+                        sp-config-value="#{sp:getSystemConfigurationValue('disableInitialManageAttributesGridLoad', false)}" />
+
+    <sp-register-config sp-config-key="disableInitialViewIdentityGridLoad"
+                        sp-config-value="#{sp:getSystemConfigurationValue('disableInitialViewIdentityGridLoad', false)}" />
+
+    <sp-register-config sp-config-key="uiApprovalItemsColumnsEntitlement"
+                        sp-column-configs="#{sp:getColumnConfigJSON('uiApprovalItemsColumnsEntitlement')}" />
+
+    <div ui-view=""></div>
+  </ui:define>
+</ui:composition>
+</body>
+</html>

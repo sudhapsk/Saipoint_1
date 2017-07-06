@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<!-- (c) Copyright 2016 SailPoint Technologies, Inc., All Rights Reserved. -->
+
+<html lang="en"
+    xmlns:sp="http://sailpoint.com/ui"
+    xmlns:ui="http://java.sun.com/jsf/facelets">
+<body>
+
+<ui:composition template="/ngAppPage.xhtml">
+<ui:define name="headerItems">
+
+  <ui:include src="../ui/scriptData.xhtml" />
+
+  <script src="#{base.requestContextPath}/ui/js/bundles/AdminConsoleAppBundle.js"></script>
+</ui:define>
+<ui:define name="body">
+  <div>
+    <div ui-view=""></div>
+  </div>
+</ui:define>
+</ui:composition>
+
+</body>
+</html>

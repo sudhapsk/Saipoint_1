@@ -1,0 +1,387 @@
+--
+-- This script contains DDL statements to upgrade a database schema to
+-- reflect changes to the model.  This file should only be used to
+-- upgrade from the last formal release version to the current code base.
+--
+
+USE identityiq
+GO
+
+-- SCIM Audit Resources
+ALTER TABLE identityiq.spt_audit_config ADD resources nvarchar(max) null;
+GO
+
+-- Provisioning Transaction
+create table identityiq.spt_provisioning_transaction (
+    id nvarchar(32) not null,
+    name nvarchar(255) null,
+    created numeric(19,0) null,
+    modified numeric(19,0) null,
+    operation nvarchar(255) null,
+    source nvarchar(255) null,
+    application_name nvarchar(255) null,
+    identity_name nvarchar(255) null,
+    identity_display_name nvarchar(255) null,
+    native_identity nvarchar(322) null,
+    account_display_name nvarchar(322) null,
+    attributes nvarchar(max) null,
+    integration nvarchar(255) null,
+    certification_id nvarchar(32) null,
+    forced tinyint null,
+    type nvarchar(255) null,
+    status nvarchar(255) null,
+    primary key (id)
+);
+GO
+
+create index spt_prvtrans_name on identityiq.spt_provisioning_transaction (name);
+GO
+
+create index spt_prvtrans_status on identityiq.spt_provisioning_transaction (status);
+GO
+
+create index spt_prvtrans_iddn_ci on identityiq.spt_provisioning_transaction (identity_display_name);
+GO
+
+create index spt_prvtrans_integ_ci on identityiq.spt_provisioning_transaction (integration);
+GO
+
+create index spt_prvtrans_src on identityiq.spt_provisioning_transaction (source);
+GO
+
+create index spt_prvtrans_forced on identityiq.spt_provisioning_transaction (forced);
+GO
+
+create index spt_prvtrans_app_ci on identityiq.spt_provisioning_transaction (application_name);
+GO
+
+create index spt_prvtrans_adn_ci on identityiq.spt_provisioning_transaction (account_display_name);
+GO
+
+create index spt_prvtrans_type on identityiq.spt_provisioning_transaction (type);
+GO
+
+create index spt_prvtrans_idn_ci on identityiq.spt_provisioning_transaction (identity_name);
+GO
+
+create index spt_prvtrans_nid_ci on identityiq.spt_provisioning_transaction (native_identity);
+GO
+
+create index spt_prvtrans_op on identityiq.spt_provisioning_transaction (operation);
+GO
+
+create table identityiq.spt_prv_trans_sequence ( next_val numeric(19,0) );
+GO
+
+insert into identityiq.spt_prv_trans_sequence values ( 1 );
+GO
+
+-- End Provisioning Transaction
+
+-- Indexed flag for schema attributes
+
+alter table identityiq.spt_schema_attributes add indexed tinyint null default 0 with values;
+GO
+
+-- Indexed flag for schema attributes, child hierarchy
+
+alter table identityiq.spt_application_schema add index_permissions tinyint null default 0 with values;
+GO
+
+alter table identityiq.spt_application_schema add child_hierarchy tinyint null default 0 with values;
+GO
+
+-- Extend TargetAssociation
+
+alter table identityiq.spt_target_association add application_name nvarchar(128) null;
+alter table identityiq.spt_target_association add target_type nvarchar(128) null;
+alter table identityiq.spt_target_association add target_name nvarchar(255) null;
+alter table identityiq.spt_target_association add hierarchy nvarchar(512) null;
+alter table identityiq.spt_target_association add flattened tinyint null default 0 with values;
+GO
+        
+-- Extend ArchivedCertificationItem exceptionNativeIdentity column to match Link
+
+alter table identityiq.spt_archived_cert_item alter column exception_native_identity nvarchar(322) null;
+GO
+
+-- Remove nonNull constraint from quickLinkOptions
+ALTER TABLE identityiq.spt_quick_link_options DROP CONSTRAINT FK8C93F7F329E4F453;
+GO
+alter table identityiq.spt_quick_link_options alter column quick_link nvarchar(32) null;
+GO
+ALTER TABLE identityiq.spt_quick_link_options ADD CONSTRAINT FK8C93F7F329E4F453 FOREIGN KEY (quick_link) REFERENCES identityiq.spt_quick_link(id);
+GO
+
+-- Increase the field size for spt_certification_archive.name
+ALTER TABLE identityiq.spt_certification_archive ALTER COLUMN name nvarchar(256);
+GO
+
+create index spt_application_modified on identityiq.spt_application (modified);
+create index spt_application_created on identityiq.spt_application (created);
+GO
+
+create index spt_integration_conf_created on identityiq.spt_integration_config (created);
+create index spt_integration_conf_modified on identityiq.spt_integration_config (modified);
+GO
+
+ALTER TABLE identityiq.spt_target ALTER COLUMN native_object_id nvarchar(322);
+GO
+
+CREATE INDEX spt_target_native_obj_id ON identityiq.spt_target (native_object_id);
+GO
+
+CREATE INDEX spt_target_last_agg ON identityiq.spt_target (last_aggregation);
+GO
+
+ALTER TABLE identityiq.spt_target_association ADD last_aggregation numeric(19,0);
+GO
+
+CREATE INDEX spt_target_assoc_last_agg ON identityiq.spt_target_association (last_aggregation);
+GO
+
+-- Add refreshRule to TargetSource
+ALTER TABLE identityiq.spt_target_source ADD refresh_rule nvarchar(32) null;
+GO
+
+-- Add extended column to Target
+alter table identityiq.spt_target add extended1 nvarchar(255) null;
+create index spt_target_extended1_ci on identityiq.spt_target (extended1);
+GO
+
+-- aggregation types
+
+alter table identityiq.spt_application add aggregation_types nvarchar(128) null;
+alter table identityiq.spt_application_schema add aggregation_type nvarchar(128) null;
+GO
+
+-- Increase the field size for spt_service_definition.hosts
+ALTER TABLE identityiq.spt_service_definition ALTER COLUMN hosts nvarchar(1024);
+GO
+
+-- Plugin
+create table identityiq.spt_plugin (
+    id nvarchar(32) not null,
+    name nvarchar(255) null,
+    created numeric(19,0) null,
+    modified numeric(19,0) null,
+    install_date numeric(19,0) null,
+    display_name nvarchar(255) null,
+    version nvarchar(255) null,
+    disabled tinyint null,
+    right_required nvarchar(255) null,
+    min_system_version nvarchar(255) null,
+    max_system_version nvarchar(255) null,
+    attributes nvarchar(max) null,
+    position int null,
+    certification_level nvarchar(255) null,
+    file_id nvarchar(32) null unique,
+    primary key (id)
+);
+GO
+
+create index spt_plugin_name_ci on identityiq.spt_plugin (name);
+GO
+
+create index spt_plugin_dn_ci on identityiq.spt_plugin (display_name);
+GO
+
+alter table identityiq.spt_plugin 
+    add constraint FK13AE22BBF7C36E0D 
+    foreign key (file_id) 
+    references identityiq.spt_persisted_file;
+GO
+
+create index FK13AE22BBF7C36E0D on identityiq.spt_plugin (file_id);
+GO
+
+-- End Plugin
+
+-- Activity Alerts
+create table identityiq.spt_alert (
+        id nvarchar(32) not null,
+        created numeric(19,0) null,
+        modified numeric(19,0) null,
+        extended1 nvarchar(255) null,
+        attributes nvarchar(max) null,
+        source nvarchar(32) null,
+        alert_date numeric(19,0) null,
+        native_id nvarchar(255) null,
+        target_id nvarchar(255) null,
+        target_type nvarchar(255) null,
+        target_display_name nvarchar(255) null,
+        last_processed numeric(19,0) null,
+        display_name nvarchar(128) null,
+        name nvarchar(255) null,
+        type nvarchar(255) null,
+        primary key (id)
+    );
+GO
+
+create table identityiq.spt_alert_action (
+    id nvarchar(32) not null,
+    created numeric(19,0) null,
+    modified numeric(19,0) null,
+    alert_def nvarchar(max) null,
+    action_type nvarchar(255) null,
+    result_id nvarchar(255) null,
+    result nvarchar(max) null,
+    alert nvarchar(32) null,
+    primary key (id)
+    );
+GO
+
+create table identityiq.spt_alert_definition (
+        id nvarchar(32) not null,
+        created numeric(19,0) null,
+        modified numeric(19,0) null,
+        owner nvarchar(32) null,
+        assigned_scope nvarchar(32) null,
+        assigned_scope_path nvarchar(450) null,
+        match_config nvarchar(max) null,
+        disabled tinyint null,
+        name nvarchar(128) not null unique,
+        description nvarchar(1024) null,
+        display_name nvarchar(128) null,
+        action_config nvarchar(max) null,
+        primary key (id)
+    );
+GO
+
+create index spt_alert_last_processed on identityiq.spt_alert (last_processed);
+GO
+
+create index spt_alert_name on identityiq.spt_alert (name);
+GO
+
+alter table identityiq.spt_alert
+    add constraint FKAD3A44D4A7C3772B
+    foreign key (source)
+    references identityiq.spt_application;
+GO
+
+create index FKAD3A44D4A7C3772B on identityiq.spt_alert (source);
+GO
+
+alter table identityiq.spt_alert_action
+    add constraint FK89E001BF1C6C78
+    foreign key (alert)
+    references identityiq.spt_alert;
+GO
+
+create index FK89E001BF1C6C78 on identityiq.spt_alert_action (alert);
+GO
+
+alter table identityiq.spt_alert_definition
+    add constraint FK3DF7B99EA5FB1B1
+    foreign key (owner)
+    references identityiq.spt_identity;
+GO
+
+create index FK3DF7B99EA5FB1B1 on identityiq.spt_alert_definition (owner);
+GO
+
+alter table identityiq.spt_alert_definition
+    add constraint FK3DF7B99E486634B7
+    foreign key (assigned_scope)
+    references identityiq.spt_scope;
+GO
+
+create index FK3DF7B99E486634B7 on identityiq.spt_alert_definition (assigned_scope);
+GO
+
+create index SPT_IDX99763E0AD76DF7A8 on identityiq.spt_alert_definition (assigned_scope_path);
+GO
+
+create table identityiq.spt_alert_sequence ( next_val numeric(19,0) );
+GO
+
+insert into identityiq.spt_alert_sequence values ( 1 );
+GO
+
+
+ALTER TABLE identityiq.spt_application_schema ADD creation_rule nvarchar(32) null;
+GO
+
+alter table identityiq.spt_application_schema
+        add constraint FK62F93AF84FE65998
+        foreign key (creation_rule)
+        references identityiq.spt_rule;
+GO
+
+create index FK62F93AF84FE65998 on identityiq.spt_application_schema (creation_rule);
+GO
+
+
+ALTER TABLE identityiq.spt_application_schema ADD customization_rule nvarchar(32) null;
+GO
+
+alter table identityiq.spt_application_schema
+        add constraint FK62F93AF86FB29924
+        foreign key (customization_rule)
+        references identityiq.spt_rule;
+GO
+
+create index FK62F93AF86FB29924 on identityiq.spt_application_schema (customization_rule);
+GO
+
+ALTER TABLE identityiq.spt_application_schema ADD correlation_rule nvarchar(32) null;
+GO
+
+alter table identityiq.spt_application_schema
+        add constraint FK62F93AF8BE1EE0D5
+        foreign key (correlation_rule)
+        references identityiq.spt_rule;
+GO
+
+create index FK62F93AF8BE1EE0D5 on identityiq.spt_application_schema (correlation_rule);
+GO
+
+-- End Activity Alerts
+
+-- Update field sizes to accommodate managed attribute values
+ALTER TABLE identityiq.spt_certification_entity ALTER COLUMN identity_id nvarchar(450);
+GO
+ALTER TABLE identityiq.spt_certification_entity ALTER COLUMN account_group nvarchar(450);
+GO
+ALTER TABLE identityiq.spt_audit_event ALTER COLUMN string1 nvarchar(450); 
+GO
+ALTER TABLE identityiq.spt_audit_event ALTER COLUMN string2 nvarchar(450); 
+GO
+ALTER TABLE identityiq.spt_audit_event ALTER COLUMN string3 nvarchar(450); 
+GO
+ALTER TABLE identityiq.spt_audit_event ALTER COLUMN string4 nvarchar(450); 
+GO
+ALTER TABLE identityiq.spt_archived_cert_entity ALTER COLUMN identity_name nvarchar(450); 
+GO
+ALTER TABLE identityiq.spt_archived_cert_entity ALTER COLUMN account_group nvarchar(450); 
+GO
+ALTER TABLE identityiq.spt_entitlement_snapshot ALTER COLUMN display_name nvarchar(450);
+GO
+-- End update field sizes to accommodate managed attribute values
+
+create index spt_syslog_created on identityiq.spt_syslog_event (created);
+GO
+
+-- Make CertificationEntity indexes case insensitive
+drop index identityiq.spt_certification_entity.spt_cert_entity_firstname;
+GO
+create index spt_cert_entity_firstname_ci on identityiq.spt_certification_entity (firstname);
+GO
+
+drop index identityiq.spt_certification_entity.spt_cert_entity_lastname;
+GO
+create index spt_cert_entity_lastname_ci on identityiq.spt_certification_entity (lastname);
+GO
+
+drop index identityiq.spt_certification_entity.spt_certification_entity_tdn;
+GO
+create index spt_cert_entity_tdn_ci on identityiq.spt_certification_entity (target_display_name);
+GO
+-- End Cert Entity updates
+
+--
+-- Make sure to change the schema version here. LEAVE THIS HERE
+--
+update identityiq.spt_database_version set schema_version='7.1-29' where name='main';
+GO

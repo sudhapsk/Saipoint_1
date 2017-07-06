@@ -1,0 +1,377 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE sailpoint PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+
+<!-- (c) Copyright 2008 SailPoint Technologies, Inc., All Rights Reserved. -->
+
+<!--
+  Initialization file for SCIM related configuration.
+-->
+<sailpoint>
+
+  <Configuration name="SCIMConfiguration">
+    <Attributes>
+      <Map>
+        <entry key="schemaPropertyMappings">
+          <value>
+            <List>
+              <SchemaPropertyMapping urn="urn:ietf:params:scim:schemas:core:2.0:User">  
+                  <AttributePropertyMapping name="id" property="id"/>  
+                  <AttributePropertyMapping name="userName" property="name" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                  <AttributePropertyMapping name="active" property="inactive" getter="sailpoint.service.scim.InversePropertyGetter" 
+                                setter="sailpoint.service.scim.UserActivePropertySetter"
+                                queryClass="sailpoint.service.scim.InverseFilterModifier"/>  
+                  <AttributePropertyMapping name="displayName" property="displayName" setter="sailpoint.service.scim.UserPropertySetter"  queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                  <AttributePropertyMapping name="name" >  
+                      <AttributePropertyMapping name="formatted" property="displayName"  queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                      <AttributePropertyMapping name="familyName" property="lastname" setter="sailpoint.service.scim.UserPropertySetter" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                      <AttributePropertyMapping name="givenName" property="firstname" setter="sailpoint.service.scim.UserPropertySetter" queryClass="sailpoint.service.scim.GenericFilterModifier" />  
+                  </AttributePropertyMapping>  
+                  <AttributePropertyMapping name="emails">  
+                      <AttributePropertyMapping name="value" property="email" setter="sailpoint.service.scim.UserPropertySetter"  queryClass="sailpoint.service.scim.GenericFilterModifier">  
+                        <Attributes>
+                          <Map>
+                            <entry key="errorOnMultipleValues" value="true"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="type" value="work"/>  
+                      <AttributePropertyMapping name="primary" value="true"/>  
+                  </AttributePropertyMapping>  
+                  <AttributePropertyMapping name="password" property="password" setter="sailpoint.service.scim.UserPasswordPropertySetter"/>  
+                  <AttributePropertyMapping name="meta" >  
+                      <AttributePropertyMapping name="resourceType" value="User"/>  
+                      <AttributePropertyMapping name="created" property="created" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                      <AttributePropertyMapping name="lastModified" property="modified" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                      <AttributePropertyMapping name="version" property="modified" getter="sailpoint.service.scim.VersionGetter"/>  
+                      <AttributePropertyMapping name="location" property="id" value="Users" getter="sailpoint.service.scim.LocationGetter" />  
+                  </AttributePropertyMapping>  
+              </SchemaPropertyMapping>  
+            
+              <SchemaPropertyMapping urn="urn:ietf:params:scim:schemas:extension:enterprise:2.0:User">  
+                  <AttributePropertyMapping name="manager" property="manager" setter="sailpoint.service.scim.UserIdentityTypePropertySetter" >  
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.IdentityTypeFilterModifier" >  
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="manager.id"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="displayName" queryClass="sailpoint.service.scim.IdentityTypeFilterModifier" >  
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="manager.displayName"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>  
+                      <AttributePropertyMapping name="$ref" property="id" value="Users" getter="sailpoint.service.scim.LocationGetter"/>  
+                  </AttributePropertyMapping>  
+              </SchemaPropertyMapping>  
+              <SchemaPropertyMapping urn="urn:ietf:params:scim:schemas:sailpoint:1.0:User">
+                  <AttributePropertyMapping name="accounts" property="links">
+                      <AttributePropertyMapping name="value" property="id"/>
+                      <AttributePropertyMapping name="displayName" property="displayName"/>
+                      <AttributePropertyMapping name="$ref" property="id" value="Accounts" getter="sailpoint.service.scim.LocationGetter"/>
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="isManager" property="managerStatus" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                  <AttributePropertyMapping name="riskScore" property="scorecard.compositeScore" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                  <AttributePropertyMapping name="lastRefresh" property="lastRefresh" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                  <AttributePropertyMapping name="roles" getter="sailpoint.service.scim.UserRolesGetter">  
+                      <AttributePropertyMapping name="value" property="name"/>  
+                      <AttributePropertyMapping name="display" property="displayableName"/>  
+                      <AttributePropertyMapping name="type" property="roleType"/>  
+                      <AttributePropertyMapping name="acquired" property="acquired"/>  
+                      <AttributePropertyMapping name="application" property="application"/>  
+                      <AttributePropertyMapping name="accountName" property="accountName"/>
+                      <AttributePropertyMapping name="$ref" property="roleId" value="Roles" getter="sailpoint.service.scim.LocationGetter"/>
+                  </AttributePropertyMapping>  
+                  <AttributePropertyMapping name="entitlements" getter="sailpoint.service.scim.UserEntitlementsGetter">  
+                      <AttributePropertyMapping name="value" property="name"/>  
+                      <AttributePropertyMapping name="display" property="displayValue"/>  
+                      <AttributePropertyMapping name="type" property="type"/>  
+                      <AttributePropertyMapping name="application" property="application"/>  
+                      <AttributePropertyMapping name="accountName" property="nativeIdentity"/>  
+                      <AttributePropertyMapping name="$ref" property="entitlementId" value="Entitlements" getter="sailpoint.service.scim.EntitlementLocationGetter"/>
+                  </AttributePropertyMapping>  
+                  <AttributePropertyMapping name="capabilities" property="capabilities" getter="sailpoint.service.scim.UserCapabilitiesGetter" 
+                      setter="sailpoint.service.scim.UserPropertySetter" queryClass="sailpoint.service.scim.NameReferenceFilterModifier"/>  
+              </SchemaPropertyMapping>              
+
+              <SchemaPropertyMapping urn="urn:ietf:params:scim:schemas:sailpoint:1.0:Application">  
+                  <AttributePropertyMapping name="id" property="id"/>  
+                  <AttributePropertyMapping name="name" property="name" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                  <AttributePropertyMapping name="descriptions" property="descriptions" getter="sailpoint.service.scim.LocalizedDescriptionsGetter">
+                      <AttributePropertyMapping name="locale" property="locale"/>  
+                      <AttributePropertyMapping name="value" property="value"/>  
+                  </AttributePropertyMapping>  
+                  <AttributePropertyMapping name="type" property="type" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                  <AttributePropertyMapping name="features" property="featuresString" getter="sailpoint.service.scim.CsvToArrayGetter"/>  
+                  <AttributePropertyMapping name="owner" property="owner">  
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="owner.id"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="displayName" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="owner.displayName"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Users" getter="sailpoint.service.scim.LocationGetter"/>  
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="applicationSchemas" property="schemas"  getter="sailpoint.service.scim.ApplicationSchemasGetter">  
+                      <AttributePropertyMapping name="value" property="id"/>
+                      <AttributePropertyMapping name="type" property="type"/>
+                      <AttributePropertyMapping name="$ref" property="ref" value="Schemas" getter="sailpoint.service.scim.LocationGetter"/>  
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="meta" >  
+                      <AttributePropertyMapping name="resourceType" value="Application"/>  
+                      <AttributePropertyMapping name="created" property="created" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                      <AttributePropertyMapping name="lastModified" property="modified" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                      <AttributePropertyMapping name="version" property="modified" getter="sailpoint.service.scim.VersionGetter"/>  
+                      <AttributePropertyMapping name="location" property="id" value="Applications" getter="sailpoint.service.scim.LocationGetter" />  
+                  </AttributePropertyMapping>  
+              </SchemaPropertyMapping>  
+
+              <SchemaPropertyMapping urn="urn:ietf:params:scim:schemas:sailpoint:1.0:Account">
+                  <AttributePropertyMapping name="id" property="id"/>
+                  <AttributePropertyMapping name="nativeIdentity" property="nativeIdentity" queryClass="sailpoint.service.scim.GenericFilterModifier" setter="sailpoint.service.scim.AccountNativeIdentitySetter"/>
+                  <AttributePropertyMapping name="displayName" property="displayName" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="uuid" property="uuid" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="password" property="password" setter="sailpoint.service.scim.AccountPasswordPropertySetter">
+                    <Attributes>
+                      <Map>
+                        <entry key="operation" value="Add"/>
+                        <entry key="secret" value="true"/>
+                      </Map>
+                    </Attributes>
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="currentPassword" property="currentPassword" setter="sailpoint.service.scim.AccountPasswordPropertySetter">
+                    <Attributes>
+                      <Map>
+                        <entry key="operation" value="Add"/>
+                      </Map>
+                    </Attributes>
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="lastRefresh" property="lastRefresh" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="instance" property="instance" setter="sailpoint.service.scim.AccountInstanceSetter" />
+                  <AttributePropertyMapping name="lastTargetAggregation" property="lastTargetAggregation" queryClass="sailpoint.service.scim.GenericFilterModifier"/>                  
+                  <AttributePropertyMapping name="manuallyCorrelated" property="manuallyCorrelated" />
+                  <AttributePropertyMapping name="hasEntitlements" property="entitlements" />
+                  <AttributePropertyMapping name="active" property="disabled" getter="sailpoint.service.scim.InversePropertyGetter" queryClass="sailpoint.service.scim.InverseFilterModifier"
+                    setter="sailpoint.service.scim.AccountRequestOperationSetter"/>
+                  <AttributePropertyMapping name="locked" property="locked" setter="sailpoint.service.scim.UnlockOperationSetter"/>
+                  <AttributePropertyMapping name="identity" property="identity" setter="sailpoint.service.scim.AccountIdentitySetter" >  
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="identity.id"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="displayName" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="identity.displayName"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Users" getter="sailpoint.service.scim.LocationGetter"/>  
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="application" property="application" setter="sailpoint.service.scim.AccountApplicationSetter" >  
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="application.id" />
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="name" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="application.name" />
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Applications" getter="sailpoint.service.scim.LocationGetter"/>  
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="meta" >  
+                      <AttributePropertyMapping name="resourceType" value="Account"/>  
+                      <AttributePropertyMapping name="created" property="created" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                      <AttributePropertyMapping name="lastModified" property="modified" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                      <AttributePropertyMapping name="version" property="modified" getter="sailpoint.service.scim.VersionGetter"/>  
+                      <AttributePropertyMapping name="location" property="id" value="Accounts" getter="sailpoint.service.scim.LocationGetter" />  
+                  </AttributePropertyMapping>  
+              </SchemaPropertyMapping>
+
+              <SchemaPropertyMapping urn="urn:ietf:params:scim:schemas:sailpoint:1.0:Entitlement">  
+                  <AttributePropertyMapping name="id" property="id"/>  
+                  <AttributePropertyMapping name="descriptions" property="descriptions" getter="sailpoint.service.scim.LocalizedDescriptionsGetter">
+                      <AttributePropertyMapping name="locale" property="locale"/>  
+                      <AttributePropertyMapping name="value" property="value"/>  
+                  </AttributePropertyMapping>  
+                  <AttributePropertyMapping name="type" property="type" queryClass="sailpoint.service.scim.GenericFilterModifier" />  
+                  <AttributePropertyMapping name="displayableName" property="displayableName"  queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="attribute" property="attribute" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="value" property="value" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="requestable" property="requestable" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="aggregated" property="aggregated" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="lastRefresh" property="lastRefresh" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="lastTargetAggregation" property="lastTargetAggregation" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="owner" property="owner">  
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="owner.id"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="displayName" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="owner.displayName"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Users" getter="sailpoint.service.scim.LocationGetter"/>  
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="application" property="application" >  
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="application.id" />
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="name" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="application.name" />
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Applications" getter="sailpoint.service.scim.LocationGetter"/>  
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="meta" >  
+                      <AttributePropertyMapping name="resourceType" value="Entitlement"/>  
+                      <AttributePropertyMapping name="created" property="created" queryClass="sailpoint.service.scim.GenericFilterModifier"/>  
+                      <AttributePropertyMapping name="lastModified" property="modified" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                      <AttributePropertyMapping name="version" property="modified" getter="sailpoint.service.scim.VersionGetter"/>  
+                      <AttributePropertyMapping name="location" property="id" value="Entitlements" getter="sailpoint.service.scim.LocationGetter" />  
+                  </AttributePropertyMapping>  
+              </SchemaPropertyMapping>  
+
+              <SchemaPropertyMapping urn="urn:ietf:params:scim:schemas:sailpoint:1.0:Role">
+                  <AttributePropertyMapping name="id" property="id"/>
+                  <AttributePropertyMapping name="name" property="name"  queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="displayableName" property="displayableName" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                  <AttributePropertyMapping name="active" property="disabled" getter="sailpoint.service.scim.InversePropertyGetter" queryClass="sailpoint.service.scim.InverseFilterModifier"/>
+                  <AttributePropertyMapping name="type" property="type" getter="sailpoint.service.scim.RoleTypeGetter">
+                    <AttributePropertyMapping name="name" property="name" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                      <Attributes>
+                        <Map>
+                          <entry key="queryClassProperty" value="type"/>
+                        </Map>
+                      </Attributes>
+                    </AttributePropertyMapping>
+                    <AttributePropertyMapping name="displayName" property="displayName"/>
+                    <AttributePropertyMapping name="assignmentSelector" property="noAssignmentSelector" getter="sailpoint.service.scim.InversePropertyGetter"/>
+                    <AttributePropertyMapping name="autoAssignment" property="noAutoAssignment" getter="sailpoint.service.scim.InversePropertyGetter"/>
+                    <AttributePropertyMapping name="iiq" property="noIIQ" getter="sailpoint.service.scim.InversePropertyGetter"/>
+                    <AttributePropertyMapping name="manualAssignment" property="noManualAssignment" getter="sailpoint.service.scim.InversePropertyGetter"/>
+                    <AttributePropertyMapping name="permits" property="noPermits" getter="sailpoint.service.scim.InversePropertyGetter"/>
+                    <AttributePropertyMapping name="requirements" property="noRequirements" getter="sailpoint.service.scim.InversePropertyGetter"/>
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="descriptions" property="descriptions" getter="sailpoint.service.scim.LocalizedDescriptionsGetter">
+                    <AttributePropertyMapping name="locale" property="locale"/>
+                    <AttributePropertyMapping name="value" property="value"/>
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="activationDate" property="activationDate"/>
+                  <AttributePropertyMapping name="deactivationDate" property="deactivationDate"/>
+                  <AttributePropertyMapping name="owner" property="owner">  
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="owner.id"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="displayName" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="owner.displayName"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Users" getter="sailpoint.service.scim.LocationGetter"/>  
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="inheritance" property="inheritance">
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="inheritance.id"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="displayableName" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="inheritance.displayableName"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Roles" getter="sailpoint.service.scim.LocationGetter"/>
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="requirements" property="requirements">
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="requirements.id"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="displayableName" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="requirements.displayableName"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Roles" getter="sailpoint.service.scim.LocationGetter"/>
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="permits" property="permits">
+                      <AttributePropertyMapping name="value" property="id" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="permits.id"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="displayName" property="displayableName" queryClass="sailpoint.service.scim.ReferenceTypeFilterModifier">
+                        <Attributes>
+                          <Map>
+                            <entry key="queryClassProperty" value="permits.displayableName"/>
+                          </Map>
+                        </Attributes>
+                      </AttributePropertyMapping>
+                      <AttributePropertyMapping name="$ref" property="id" value="Roles" getter="sailpoint.service.scim.LocationGetter"/>
+                  </AttributePropertyMapping>
+                  <AttributePropertyMapping name="meta" >
+                      <AttributePropertyMapping name="resourceType" value="Role"/>
+                      <AttributePropertyMapping name="created" property="created" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                      <AttributePropertyMapping name="lastModified" property="modified" queryClass="sailpoint.service.scim.GenericFilterModifier"/>
+                      <AttributePropertyMapping name="version" property="modified" getter="sailpoint.service.scim.VersionGetter"/>
+                      <AttributePropertyMapping name="location" property="id" value="Roles" getter="sailpoint.service.scim.LocationGetter" />
+                  </AttributePropertyMapping>
+              </SchemaPropertyMapping>
+            </List>
+          </value>
+        </entry>
+      </Map>
+    </Attributes>
+  </Configuration>
+
+</sailpoint>
