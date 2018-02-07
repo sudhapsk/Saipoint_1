@@ -1,0 +1,66 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description" : "Create S3 Bucket, 2 IAM Roles and 2 Bucket Policy",
+    "Resources": {
+        "S3BAdmin": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+		"RoleName": "S3BAdmin",
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": "s3:*",
+                            "Principal": {"Service": "s3.amazonaws.com"},
+			    "Action": ["sts:AssumeRole"]    
+                        }
+                    ]
+                }
+            }
+        },
+	"S3Buser1": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+		"RoleName": "S3BUser1",
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": "s3:*",
+                            "Principal": {"Service": "s3.amazonaws.com"},
+			    "Action": ["sts:AssumeRole"]    
+                        }
+                    ]
+                }
+            }
+        },
+	"S3ShareBucket1": {
+            "Type": "AWS::S3::Bucket",
+	    "Properties": {
+      	    "BucketName": "s3sharebucket1"
+		 }
+        },
+	"S3BPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+  		"Bucket": "s3sharebucket1",
+  		"PolicyDocument": {
+		"Statement": [
+   	           {
+      		    "Action": "s3:*",
+      		    "Effect": "Allow",
+      		    "Resource": ["arn:aws:s3:::s3sharebucket1/*"],
+      		    "Principal": {"AWS": "arn:aws:iam::460908241057:role/S3BAdmin"}
+    		     },
+		    {
+		    "Action": ["s3:GetObject","s3:PutObject"],
+      		    "Effect": "Allow",
+      		    "Resource": ["arn:aws:s3:::s3sharebucket1/*"],
+      		    "Principal": {"AWS": "arn:aws:iam::460908241057:role/S3BUser1"}
+    		   }
+  		]
+	      }
+	   }
+	}
+    }
+}
